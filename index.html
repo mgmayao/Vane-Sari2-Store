@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#15283B">
+<meta name="theme-color" content="#201F1D">
 <title>Vane Sari2 Store POS</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -14,9 +14,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ground:#EDF1EE; --paper:#fff; --ink:#15283B; --ink2:#566878; --line:#D3DCD7; --wash:#F6F8F7;
-  --gold:#F4B400; --gold-ink:#2B1F00; --go:#1E8A4A; --bad:#C63A2B; --badbg:#FBE9E6;
-  --r:14px; --nav-h:64px;
+  --ground:#F6F6F4; --paper:#fff; --ink:#201F1D; --ink2:#6F706B; --line:#DFE0DC; --wash:#F2F3F0;
+  --accent:#007C89; --accent-ink:#fff; --accent-soft:#E3F0F1; --go:#007C89; --bad:#B54A42; --badbg:#F8ECEA;
+  --r:10px; --nav-h:64px;
   --fh:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
   --fb:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:light;
@@ -29,82 +29,126 @@ body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.4 var(--fb);
 h1,h2,h3{font-family:var(--fh);margin:0;line-height:1.1}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none;padding:0}
-:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 input{width:100%;min-height:46px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
-input:focus{border-color:var(--ink);outline:none}
-input:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+input:focus{border-color:var(--accent);outline:none}
+input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
 label{display:block;font-weight:600;font-size:.9rem;margin:12px 0 0}
 label input{margin-top:5px;font-weight:400}
 
 /* login */
-body.locked{padding-bottom:0}
-.login{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:var(--ink)}
-.login-card{width:min(420px,100%);background:#fff;border-radius:22px;padding:26px 22px 24px}
-.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.login-brand h1{font-size:1.55rem;font-weight:800}
-.login-brand p{margin:4px 0 0;color:var(--ink2)}
-.login-card label.showpw{display:flex;align-items:center;gap:8px;font-weight:500;margin-top:12px}
-.login-card label.showpw input{width:20px;height:20px;min-height:0;padding:0;margin:0}
-.login-msg{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--badbg);color:var(--bad);font-weight:600;font-size:.92rem}
-.login-msg.info{background:var(--wash);color:var(--ink)}
-.login-links{display:flex;justify-content:center;gap:14px;margin-top:6px;flex-wrap:wrap}
-.login-links .link{min-height:44px;padding:0 4px;font-size:.92rem}
-.top .logout{background:transparent;border:1.5px solid #3A5470;color:#fff;flex:none}
+body.locked{min-height:100dvh;padding-bottom:0;background:#F6F6F4;color:#201F1D;font-size:18px}
+.login{position:relative;isolation:isolate;min-height:100svh;display:flex;flex-direction:column;align-items:center;padding:24px clamp(20px,5vw,72px) 18px clamp(28px,5vw,76px);background:#F6F6F4}
+.login::before{content:"";position:fixed;z-index:5;inset:0 auto 0 0;width:8px;background:#FFE01B}
+.login-header{width:min(1280px,100%);min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.login-brand{display:flex;align-items:center;gap:12px;min-width:0;color:#201F1D;text-decoration:none}
+.login-brand img{width:42px;height:42px;object-fit:contain;border-radius:7px}
+.login-brand strong{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.language-selector{display:inline-flex;align-items:center;gap:8px;color:#007C89;font-size:14px;font-weight:600;white-space:nowrap}
+.language-selector svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.login-main{flex:1;width:100%;display:grid;place-items:center;padding:32px 0 42px}
+.login-card{width:min(610px,100%);background:#fff;border:1px solid #E3E2DE;border-radius:24px;padding:56px 64px 48px;box-shadow:0 12px 36px rgba(36,34,29,.035)}
+.login-card h2{font:400 48px/1.08 Georgia,'Times New Roman',serif;color:#201F1D;margin:0 0 12px}
+.login-intro{margin:0 0 26px;color:#4F504C;font-size:16px}
+.login-card .link,.login-intro button,.login-recovery button,.login-footer a{color:#007C89;text-decoration:underline;text-underline-offset:2px}
+.login-intro button{font-weight:600}
+.login-field{margin-top:20px}
+.login-field>label,.login-field-label{display:block;margin:0 0 8px;color:#292A27;font-size:15px;font-weight:700}
+.login-field input{width:100%;height:56px;min-height:56px;padding:12px 14px;border:1px solid #B9BCB8;border-radius:4px;background:#fff;color:#201F1D;font-size:17px}
+.login-field input:focus{border-color:#007C89;outline:2px solid #007C89;outline-offset:1px}
+.password-label-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.password-label-row .login-field-label{margin-bottom:8px}
+.show-password{display:inline-flex;align-items:center;gap:5px;margin:0 0 8px;color:#007C89;font-size:14px;font-weight:600}
+.show-password svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.login-check{display:flex;align-items:center;gap:10px;margin:18px 0 0;color:#32332F;font-size:15px}
+.login-check input{appearance:none;width:19px;height:19px;min-height:19px;flex:none;margin:0;border:1px solid #8E938E;border-radius:3px;background:#fff}
+.login-check input:checked{border-color:#007C89;background:#007C89;box-shadow:inset 0 0 0 4px #fff}
+.login-check input:focus-visible{outline:2px solid #007C89;outline-offset:2px}
+.login-msg{margin:18px 0 0;padding:11px 13px;border:1px solid #E9C7C2;border-radius:4px;background:#FBF0EE;color:#963C35;font-size:14px;font-weight:600}
+.login-msg.info{border-color:#C6DADD;background:#EFF7F7;color:#235A60}
+.login-submit{width:160px;min-height:58px;margin-top:24px;border-radius:999px;background:#007C89;color:#fff;font-size:17px;font-weight:700;transition:background .15s ease}
+.login-submit:hover{background:#00636D}
+.login-submit:disabled{opacity:.58;cursor:wait}
+.login-recovery{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:26px;font-size:14px}
+.login-recovery .support-link{flex-basis:100%;text-align:left}
+.login-mode-link{min-height:40px;padding:0;font-weight:600}
+.login-footer{width:min(1280px,100%);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px 15px;color:#73756F;font-size:12px;text-align:center}
+.login-footer a{color:#5C6764}
+.feedback-tab{position:fixed;z-index:6;right:0;top:44%;padding:13px 9px;border:1px solid #E2E3E0;border-right:0;border-radius:8px 0 0 8px;background:#ECEDEA;color:#525752;font-size:12px;font-weight:600;writing-mode:vertical-rl;letter-spacing:0}
+.login .login-links .link{min-height:40px;padding:0 4px;font-size:14px}
+@media(max-width:600px){
+  .login{padding:18px 16px 14px 24px}
+  .login-header{min-height:48px}
+  .login-brand img{width:36px;height:36px}
+  .login-brand strong{font-size:14px}
+  .language-selector{gap:5px;font-size:12px}
+  .login-main{padding:28px 0 32px}
+  .login-card{padding:32px 24px 30px;border-radius:18px}
+  .login-card h2{font-size:40px}
+  .login-submit{width:100%;min-height:56px}
+  .login-footer{line-height:1.7}
+}
+.top .logout{background:transparent;border:1.5px solid #5A5B56;color:#fff;flex:none}
 
 /* header + nav */
 .top{background:var(--ink);color:#fff;padding:12px 16px calc(12px) ;padding-top:calc(12px + env(safe-area-inset-top,0px));
   display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
-.mark{flex:none;width:42px;height:42px;background:var(--gold);color:var(--ink);font:800 1.4rem/42px var(--fh);text-align:center;
+.mark{flex:none;width:42px;height:42px;background:var(--accent);color:#fff;font:800 1.4rem/42px var(--fh);text-align:center;
   clip-path:polygon(0 0,72% 0,100% 50%,72% 100%,0 100%);padding-right:8px}
 .brand h1{font-size:1.25rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand p{margin:2px 0 0;font-size:.85rem;color:#B9C6D2}
+.brand p{margin:2px 0 0;font-size:.85rem;color:#C6C7C3}
+.sync-status{display:inline-flex;align-items:center;gap:6px;margin:5px 0 0;padding:4px 8px;border-radius:999px;font-size:.75rem;font-weight:600;line-height:1.2;color:#E8F2F2;background:#344044}
+.sync-status:empty{display:none}
+.sync-status::before{content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#8CCBD0}
+.sync-status[data-state="working"]::before{background:#D7C88E}
+.sync-status[data-state="offline"]{color:#F1D8D5;background:#503B39}
+.sync-status[data-state="offline"]::before{background:#D78B82}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #2A4058}
-.tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#B9C6D2;font-size:.78rem;font-weight:600}
-.tabs button[aria-current="page"]{color:var(--gold)}
+  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #3D3E3A}
+.tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#C6C7C3;font-size:.78rem;font-weight:600}
+.tabs button[aria-current="page"]{color:#8CCBD0}
 .tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 main{padding:16px;max-width:1240px;margin:0 auto}
 .view h2{font-size:1.5rem;font-weight:800}
 
 /* buttons */
-.btn{min-height:46px;padding:0 18px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
-.primary{background:var(--go);color:#fff}
-.secondary{background:var(--gold);color:var(--gold-ink)}
+.btn{min-height:46px;padding:0 18px;border-radius:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.secondary{background:var(--wash);border:1px solid var(--line);color:var(--ink)}
 .outline{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
 .danger{background:var(--badbg);color:var(--bad)}
 .link{color:var(--ink2);text-decoration:underline;min-height:40px;font-weight:600}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.small{min-height:38px;padding:0 12px;font-size:.9rem;border-radius:10px}
+.small{min-height:38px;padding:0 12px;font-size:.9rem;border-radius:8px}
 
 /* chips */
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:thin}
 .chip{flex:none;min-height:40px;padding:0 16px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:600;font-size:.92rem}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 
 /* sell */
 .sell{display:block}
 .catalog .search{margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
-.tile{position:relative;text-align:left;background:#fff;border-radius:12px 12px 12px 12px;padding:14px 14px 12px 20px;min-height:118px;
+.tile{position:relative;text-align:left;background:#fff;border-radius:10px;padding:14px 14px 12px 18px;min-height:118px;
   display:flex;flex-direction:column;gap:6px;border:1.5px solid var(--line);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--c,var(--gold))}
-.tile::after{content:"";position:absolute;right:10px;top:10px;width:11px;height:11px;border-radius:50%;background:var(--ground);box-shadow:inset 0 0 0 1.5px var(--line)}
-.tile:active{transform:scale(.97);background:#FFF8E1}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.tile:active{transform:scale(.99);background:var(--wash)}
 .t-name{font-weight:600;font-size:.95rem;padding-right:18px;overflow-wrap:anywhere}
 .t-price{font:800 1.7rem/1 var(--fh);margin-top:auto;font-variant-numeric:tabular-nums}
 .t-stock{font-size:.8rem;color:var(--ink2)}
 .t-stock.low{color:var(--bad);font-weight:700}
 .tile.out{background:var(--wash)}
-.t-badge{position:absolute;right:8px;bottom:8px;min-width:30px;height:30px;padding:0 8px;border-radius:15px;background:var(--gold);color:var(--gold-ink);font-weight:800;display:grid;place-items:center}
+.t-badge{position:absolute;right:8px;bottom:8px;min-width:30px;height:30px;padding:0 8px;border-radius:15px;background:var(--accent);color:#fff;font-weight:800;display:grid;place-items:center}
 .empty{padding:36px 16px;text-align:center;color:var(--ink2);background:#fff;border:1.5px dashed var(--line);border-radius:var(--r)}
 .empty strong{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:4px}
 
-.cart{position:fixed;left:0;right:0;bottom:0;z-index:40;max-height:90dvh;overflow:auto;background:#fff;border-radius:22px 22px 0 0;
+.cart{position:fixed;left:0;right:0;bottom:0;z-index:40;max-height:90dvh;overflow:auto;background:#fff;border-radius:16px 16px 0 0;
   padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease;box-shadow:0 -10px 40px rgba(21,40,59,.25)}
 .cart.open{transform:none}
-.scrim{position:fixed;inset:0;background:rgba(21,40,59,.5);z-index:35}
+.scrim{position:fixed;inset:0;background:rgba(38,52,46,.42);z-index:35}
 .cart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .cart-head h2{font-size:1.25rem}
 .lines{min-height:56px}
@@ -127,7 +171,7 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .pay-actions .btn{min-height:54px;font-size:1.05rem}
 .clear-wrap{text-align:center;margin-top:6px}
 .cartbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:32;
-  min-height:56px;border-radius:16px;background:var(--gold);color:var(--gold-ink);display:flex;align-items:center;justify-content:space-between;
+  min-height:56px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:space-between;
   padding:0 18px;font-weight:700;box-shadow:0 8px 24px rgba(21,40,59,.3)}
 .cartbar strong{font:800 1.3rem var(--fh)}
 
@@ -142,6 +186,7 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .p-stock{text-align:right;font:800 1.3rem/1 var(--fh);font-variant-numeric:tabular-nums}
 .p-stock small{display:block;font:500 .75rem var(--fb);color:var(--ink2);margin-top:2px}
 .p-stock.low{color:var(--bad)}
+.p-stock.low small{color:var(--bad);font-weight:700}
 .p-actions{grid-column:1/-1;display:flex;gap:8px}
 
 /* utang */
@@ -153,7 +198,12 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .d-sale .meta{margin-top:2px}
 
 /* reports */
-.ledger{background:#fff;border:1.5px solid var(--line);border-radius:var(--r);padding:6px 16px;margin-top:6px}
+.report-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.report-metric{min-width:0;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.report-metric span{display:block;color:var(--ink2);font-size:.82rem;font-weight:600}
+.report-metric strong{display:block;margin-top:5px;font-size:1.2rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.report-metric.profit strong{color:var(--accent)}
+.report-metric.unpaid strong{color:var(--bad)}
 .lrow{display:flex;align-items:baseline;padding:11px 0}
 .lrow i{flex:1;border-bottom:2px dotted var(--line);margin:0 8px;transform:translateY(-4px)}
 .lrow span{color:var(--ink2);font-weight:600}
@@ -166,11 +216,11 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .rrow:last-child{border-bottom:0}
 .rrow b{font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:700;background:var(--badbg);color:var(--bad);margin-left:6px}
-.pill.ok{background:#E2F3E9;color:var(--go)}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
 .data-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 
 /* dialog */
-dialog{border:0;border-radius:20px;padding:0;width:min(560px,94vw);max-height:90dvh;overflow:auto;color:var(--ink);background:#fff}
+dialog{border:0;border-radius:14px;padding:0;width:min(560px,94vw);max-height:90dvh;overflow:auto;color:var(--ink);background:#fff}
 dialog::backdrop{background:rgba(21,40,59,.55)}
 .dlg{padding:20px}
 .dlg h2{font-size:1.4rem;margin-bottom:4px}
@@ -194,13 +244,18 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   .top{padding:14px 28px}
   .tabs{position:static;height:auto;padding:0;border:0;background:none;display:flex;gap:6px}
   .tabs button{flex-direction:row;gap:8px;padding:0 16px;min-height:44px;border-radius:12px;font-size:.98rem}
-  .tabs button[aria-current="page"]{background:var(--gold);color:var(--gold-ink)}
-  .sell{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+  .tabs button[aria-current="page"]{background:var(--accent);color:#fff}
+  .sell{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,380px);gap:20px;align-items:start}
   .cart{position:sticky;top:16px;transform:none;max-height:calc(100dvh - 32px);border-radius:var(--r);border:1.5px solid var(--line);box-shadow:none;z-index:1}
   .scrim,.cartbar,.mobile-only{display:none!important}
   #toast{bottom:28px}
   .prow{grid-template-columns:1fr auto auto}
   .p-actions{grid-column:auto}
+}
+@media (max-width:560px){
+  .report-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .report-metric{padding:11px 12px}
+  .report-metric strong{font-size:1.1rem}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -208,35 +263,45 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
 <body>
 
 <section id="login" class="login" hidden>
+  <header class="login-header">
+    <a class="login-brand" href="/" aria-label="Vane Sari2 Store home"><img src="icon-192.png" alt=""><strong id="loginStoreName">Vane Sari2 Store</strong></a>
+    <div class="language-selector" aria-label="Language: English"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>English</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></div>
+  </header>
+  <div class="login-main">
   <form class="login-card" id="loginForm" novalidate>
-    <div class="login-brand"><div class="mark" aria-hidden="true">V</div><div><h1>Vane Sari2 Store</h1><p id="loginSub">Sign in to open the store</p></div></div>
+    <h2 id="loginHeading">Log in</h2>
+    <p class="login-intro"><span id="loginSub">Need an account?</span> <button class="login-mode-link" type="button" data-goto="signup" data-modes="signin">Create an account</button><button class="login-mode-link" type="button" data-goto="signin" data-modes="signup">Log in</button></p>
     <div data-modes="signin signup forgot">
-      <label for="l-email">Email</label>
-      <input id="l-email" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false">
+      <div class="login-field"><label for="l-email">Email</label>
+      <input class="login-input" id="l-email" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"></div>
     </div>
     <div data-modes="signin signup reset">
-      <label for="l-pw" id="l-pw-label">Password</label>
-      <input id="l-pw" type="password" autocomplete="current-password">
+      <div class="login-field"><div class="password-label-row"><label class="login-field-label" for="l-pw" id="l-pw-label">Password</label><button class="show-password" id="l-show" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.7"/></svg><span id="showPasswordText">Show</span></button></div>
+      <input class="login-input" id="l-pw" type="password" autocomplete="current-password"></div>
     </div>
     <div data-modes="signup reset" hidden>
-      <label for="l-pw2">Confirm password</label>
-      <input id="l-pw2" type="password" autocomplete="new-password">
+      <div class="login-field"><label for="l-pw2">Confirm password</label>
+      <input class="login-input" id="l-pw2" type="password" autocomplete="new-password"></div>
     </div>
-    <label class="showpw" data-modes="signin signup reset"><input type="checkbox" id="l-show"> Show password</label>
+    <label class="login-check" data-modes="signin"><input type="checkbox" id="keepLoggedIn" checked><span>Keep me logged in</span></label>
     <div id="loginMsg" class="login-msg" role="alert" hidden></div>
-    <button class="btn primary" id="loginBtn" type="submit" style="width:100%;margin-top:18px;min-height:52px">Sign in</button>
-    <div class="login-links">
-      <button type="button" class="link" data-goto="forgot" data-modes="signin">Forgot password?</button>
-      <button type="button" class="link" data-goto="signup" data-modes="signin">Create account</button>
-      <button type="button" class="link" data-goto="signin" data-modes="signup forgot reset" hidden>Back to sign in</button>
+    <button class="login-submit" id="loginBtn" type="submit">Log in</button>
+    <div class="login-recovery" data-modes="signin">
+      <button class="link" type="button" data-goto="forgot" data-recovery="username">Forgot username?</button>
+      <button class="link" type="button" data-goto="forgot" data-recovery="password">Forgot password?</button>
+      <button class="link support-link" type="button" data-login-support>Can't log in?</button>
     </div>
+    <div class="login-links"><button type="button" class="link" data-goto="signin" data-modes="signup forgot reset" hidden>Back to log in</button></div>
   </form>
+  </div>
+  <div class="feedback-tab" aria-label="Feedback">Feedback</div>
+  <footer class="login-footer"><span>© 2026 <span id="loginFooterName">Vane Sari2 Store</span>. All rights reserved.</span><a href="#cookie-preferences">Cookie Preferences</a><a href="#privacy">Privacy</a><a href="#terms">Terms</a></footer>
 </section>
 
 <header class="top" hidden>
   <div class="brand">
     <div class="mark" aria-hidden="true">V</div>
-    <div><h1 id="storeName">Vane Sari2 Store</h1><p id="todayLine">&nbsp;</p><p id="syncLine" style="margin:2px 0 0;font-size:11px;opacity:.7"></p></div>
+    <div><h1 id="storeName">Vane Sari2 Store</h1><p id="todayLine">&nbsp;</p><p id="syncLine" class="sync-status" role="status" aria-live="polite"></p></div>
   </div>
   <nav class="tabs" id="tabs" aria-label="Main">
     <button data-tab="sell" aria-current="page"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Sell</button>
@@ -328,7 +393,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
       <label for="storeInput">Store name</label>
       <input id="storeInput" autocomplete="off">
       <p class="meta" id="whoami"></p>
-      <p class="meta">Data is saved on this device and browser only. Download a backup often.</p>
+      <p class="meta">Data saves on this device and syncs online when available. Download a backup regularly.</p>
       <div class="data-actions">
         <button class="btn outline small" data-act="exportSales">Export sales (CSV)</button>
         <button class="btn outline small" data-act="backup">Download backup</button>
@@ -340,6 +405,11 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
 </main>
 
 <dialog id="dlg"></dialog>
+<dialog id="confirmDlg" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+  <div class="dlg"><h2 id="confirmTitle">Confirm action</h2><p id="confirmMessage" class="meta"></p>
+    <div class="dlg-actions"><button type="button" class="btn outline" data-act="confirmCancel">Cancel</button><button type="button" class="btn danger" id="confirmAction" data-act="confirmOk">Confirm</button></div>
+  </div>
+</dialog>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden>
 <input type="file" id="restoreFile" accept=".json,application/json" hidden>
@@ -363,7 +433,6 @@ const money = n => {
 const num = v => { const n = parseFloat(String(v ?? '').replace(/[₱,\s]/g, '')); return isNaN(n) ? NaN : n; };
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 const fmtDate = ts => new Date(ts).toLocaleString('en-PH', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'});
-const catColor = c => { let h = 0; for (const ch of String(c || 'x')) h = (h * 31 + ch.charCodeAt(0)) % 360; return `hsl(${h} 58% 46%)`; };
 const niceName = n => /[a-z]/.test(n) ? n : n.replace(/\S+/g, w => /\d/.test(w) ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase());
 
 /* ---------- state ---------- */
@@ -422,6 +491,26 @@ function toast(msg, kind) {
 }
 const dlg = $('#dlg');
 function openDlg(html) { dlg.innerHTML = `<div class="dlg">${html}</div>`; if (!dlg.open) dlg.showModal(); }
+const confirmModal = $('#confirmDlg');
+let confirmResolver = null;
+function finishConfirm(accepted) {
+  if (!confirmModal.open) return;
+  confirmModal.close();
+  const resolve = confirmResolver; confirmResolver = null;
+  if (resolve) resolve(accepted);
+}
+function askConfirm({title, message, confirmText, danger}) {
+  return new Promise(resolve => {
+    $('#confirmTitle').textContent = title;
+    $('#confirmMessage').textContent = message;
+    const action = $('#confirmAction');
+    action.textContent = confirmText || 'Confirm';
+    action.className = `btn ${danger ? 'danger' : 'primary'}`;
+    confirmResolver = resolve;
+    confirmModal.showModal();
+  });
+}
+confirmModal.addEventListener('cancel', e => { e.preventDefault(); finishConfirm(false); });
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 /* ---------- tabs ---------- */
@@ -439,8 +528,11 @@ function setTab(t) {
 
 /* ---------- header ---------- */
 function renderHeader() {
-  $('#storeName').textContent = S.storeName || 'My Store';
-  document.title = (S.storeName || 'Store') + ' POS';
+  const storeName = S.storeName || 'Vane Sari2 Store';
+  $('#storeName').textContent = storeName;
+  $('#loginStoreName').textContent = storeName;
+  $('#loginFooterName').textContent = storeName;
+  document.title = storeName + ' POS';
   const d = new Date(); d.setHours(0, 0, 0, 0);
   const today = S.sales.filter(s => s.ts >= +d && !isVoided(s));
   $('#todayLine').textContent = `Today: ${money(today.reduce((a, s) => a + s.total, 0))} from ${today.length} sale${today.length === 1 ? '' : 's'}`;
@@ -463,7 +555,7 @@ function renderGrid() {
   if (!items.length) { $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>No match</strong>Try another name or category.</div>`; return; }
   $('#grid').innerHTML = items.map(p => {
     const st = +p.stock || 0, q = cart[p.id] || 0;
-    return `<button class="tile ${st <= 0 ? 'out' : ''}" data-add="${p.id}" style="--c:${catColor(p.category)}">
+    return `<button class="tile ${st <= 0 ? 'out' : ''}" data-add="${p.id}">
       <span class="t-name">${esc(p.name)}</span>
       <span class="t-price">${money(p.price)}</span>
       <span class="t-stock ${isLow(p) ? 'low' : ''}">${st <= 0 ? 'Out of stock' : st + ' left'}</span>
@@ -550,7 +642,7 @@ function renderProducts() {
   $('#plist').innerHTML = `<div class="plist">${list.map(p => `<div class="prow">
       <div class="p-main"><strong>${esc(p.name)}</strong>
         <span class="meta">${esc(p.category || 'Others')} · cost ${money(p.cost)} · sells ${money(p.price)} · earns ${money(p.price - p.cost)} each</span></div>
-      <div class="p-stock ${isLow(p) ? 'low' : ''}">${+p.stock || 0}<small>in stock</small></div>
+      <div class="p-stock ${isLow(p) ? 'low' : ''}">${+p.stock || 0}<small>${isLow(p) ? 'Low stock' : 'In stock'}</small></div>
       <div class="p-actions"><button class="btn outline small" data-restock="${p.id}">Add stock</button><button class="btn outline small" data-edit="${p.id}">Edit</button><button class="btn danger small" data-del="${p.id}">Delete</button></div>
     </div>`).join('')}</div>`;
 }
@@ -779,13 +871,12 @@ function renderReports() {
   const sum = (arr, f) => r2(arr.reduce((a, x) => a + f(x), 0));
   const sales = sum(list, s => s.total), profit = sum(list, s => s.profit);
   const unpaid = sum(list.filter(s => !s.paid), s => s.total);
-  $('#ledger').innerHTML = `<div class="ledger">
-    <div class="lrow"><span>Sales</span><i></i><b>${money(sales)}</b></div>
-    <div class="lrow"><span>Cost of goods</span><i></i><b>${money(sales - profit)}</b></div>
-    <div class="lrow big"><span>Profit</span><i></i><b>${money(profit)}</b></div>
-    <div class="lrow"><span>Transactions</span><i></i><b>${list.length}</b></div>
-    <div class="lrow"><span>Cash collected</span><i></i><b>${money(sales - unpaid)}</b></div>
-    <div class="lrow"><span>Unpaid utang</span><i></i><b>${money(unpaid)}</b></div></div>`;
+  const metrics = [
+    ['Sales', money(sales), ''], ['Profit', money(profit), 'profit'], ['Transactions', list.length, ''],
+    ['Cash collected', money(sales - unpaid), ''], ['Unpaid utang', money(unpaid), 'unpaid'], ['Cost of goods', money(sales - profit), '']
+  ];
+  $('#ledger').innerHTML = `<div class="report-grid" aria-label="Sales summary">${metrics.map(([label, value, kind]) =>
+    `<div class="report-metric ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join('')}</div>`;
   const tally = new Map();
   list.forEach(s => s.items.forEach(i => { const t = tally.get(i.name) || {q: 0, amt: 0}; t.q += i.qty; t.amt += i.qty * i.price; tally.set(i.name, t); }));
   const tops = [...tally.entries()].sort((a, b) => b[1].q - a[1].q).slice(0, 8);
@@ -798,7 +889,7 @@ function renderReports() {
 }
 
 /* ---------- events ---------- */
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-act]');
   if (!t) return;
   const d = t.dataset;
@@ -822,7 +913,7 @@ document.addEventListener('click', e => {
   }
   if (d.del) {
     const p = prod(d.del); if (!p) return;
-    if (!confirm(`Delete "${p.name}"? Past sales are kept.`)) return;
+    if (!await askConfirm({title: 'Delete product?', message: `Delete "${p.name}"? Past sales are kept.`, confirmText: 'Delete product', danger: true})) return;
     recordAudit('product_deleted', p.id, {productName: p.name, stock: +p.stock || 0});
     recordStockMovement(p, -(+p.stock || 0), 'Product deleted');
     S.products = S.products.filter(x => x.id !== p.id); delete cart[p.id]; save(); dlg.close(); renderProducts(); toast('Product deleted'); return;
@@ -830,6 +921,8 @@ document.addEventListener('click', e => {
   switch (d.act) {
     case 'logout': logout(); break;
     case 'closeDlg': dlg.close(); break;
+    case 'confirmCancel': finishConfirm(false); break;
+    case 'confirmOk': finishConfirm(true); break;
     case 'closeCart': closeCart(); break;
     case 'addProduct': openProduct(); break;
     case 'import': $('#importFile').click(); break;
@@ -842,7 +935,7 @@ document.addEventListener('click', e => {
     case 'backup': download(`${(S.storeName || 'store').replace(/\W+/g, '-').toLowerCase()}-backup-${stamp()}.json`, JSON.stringify({app: 'vane-pos', version: 1, data: S}), 'application/json'); break;
     case 'restore': $('#restoreFile').click(); break;
     case 'wipe':
-      if (confirm('Erase ALL products and sales on this device? This cannot be undone. Download a backup first if unsure.')) {
+      if (await askConfirm({title: 'Erase all data?', message: 'This removes all products and sales from this device and cannot be undone. Download a backup first if unsure.', confirmText: 'Erase all data', danger: true})) {
         S = {storeName: S.storeName, products: [], sales: [], auditEvents: S.auditEvents || []};
         recordAudit('store_wipe', 'store', {reason: 'Manual data erase'});
         cart = {}; save(); renderHeader(); renderReports(); toast('Products and sales erased');
@@ -855,7 +948,10 @@ $('#uq').addEventListener('input', e => { ui.uq = e.target.value; renderUtang();
 $('#cash').addEventListener('input', updatePay);
 $('#btnCharge').addEventListener('click', () => checkout('cash'));
 $('#btnUtang').addEventListener('click', () => checkout('utang'));
-$('#btnClear').addEventListener('click', () => { if (cartCount() && confirm('Clear the current sale?')) clearCart(); else if (!cartCount()) clearCart(); });
+$('#btnClear').addEventListener('click', async () => {
+  if (!cartCount()) return;
+  if (await askConfirm({title: 'Clear current sale?', message: 'Remove all items from the current sale?', confirmText: 'Clear sale', danger: true})) clearCart();
+});
 $('#cartbar').addEventListener('click', openCart);
 $('#scrim').addEventListener('click', closeCart);
 $('#storeInput').addEventListener('change', e => { S.storeName = e.target.value.trim() || 'My Store'; save(); renderHeader(); });
@@ -865,7 +961,7 @@ $('#restoreFile').addEventListener('change', async e => {
   try {
     const j = JSON.parse(await f.text()), d = j && j.data ? j.data : j;
     if (!valid(d)) throw new Error('bad');
-    if (!confirm(`Replace everything on this device with the backup (${d.products.length} products, ${d.sales.length} sales)?`)) return;
+    if (!await askConfirm({title: 'Restore backup?', message: `Replace everything on this device with this backup (${d.products.length} products, ${d.sales.length} sales)?`, confirmText: 'Restore backup', danger: true})) return;
     S = {...d, auditEvents: mergeAuditEvents(S.auditEvents, d.auditEvents)};
     recordAudit('backup_restore', 'store', {productCount: S.products.length, saleCount: S.sales.length});
     cart = {}; save(); renderHeader(); setTab('reports'); toast('Backup restored');
@@ -875,6 +971,17 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart();
 
 /* ---------- login / logout (Supabase Auth) ---------- */
 const FLAG = 'vane-pos-last-user';
+const KEEP_LOGIN_KEY = 'vane-pos-keep-login';
+const keepLoggedIn = $('#keepLoggedIn');
+try { keepLoggedIn.checked = localStorage.getItem(KEEP_LOGIN_KEY) !== 'false'; } catch (e) {}
+const authStorage = {
+  getItem: key => (keepLoggedIn.checked ? localStorage : sessionStorage).getItem(key),
+  setItem: (key, value) => (keepLoggedIn.checked ? localStorage : sessionStorage).setItem(key, value),
+  removeItem: key => { try { localStorage.removeItem(key); } catch (e) {} try { sessionStorage.removeItem(key); } catch (e) {} }
+};
+keepLoggedIn.addEventListener('change', () => {
+  try { localStorage.setItem(KEEP_LOGIN_KEY, String(keepLoggedIn.checked)); } catch (e) {}
+});
 let sb = null, user = null;
 const cfgUrl = () => String(window.SUPABASE_URL || '').trim();
 const cfgKey = () => String(window.SUPABASE_KEY || '').trim();
@@ -913,13 +1020,20 @@ function enterApp(u, offline) {
   const adopt = !localStorage.getItem(KEY) && !!localStorage.getItem(KEYBASE);
   S = load();
   if (adopt) { save(); if (localStorage.getItem(KEY)) { try { localStorage.removeItem(KEYBASE); } catch (e) {} } }
-  try { localStorage.setItem(FLAG, u.id); localStorage.setItem(FLAG + '-email', u.email || ''); } catch (e) {}
+  try {
+    if (keepLoggedIn.checked) { localStorage.setItem(FLAG, u.id); localStorage.setItem(FLAG + '-email', u.email || ''); }
+    else { localStorage.removeItem(FLAG); localStorage.removeItem(FLAG + '-email'); }
+  } catch (e) {}
   ui.tab = 'sell'; setLocked(false); renderHeader(); setTab('sell');
-  if (offline) toast('Offline: opened with the last signed-in account.');
+  if (offline) { setSync('Offline: saved on this device'); toast('Offline: opened with the last signed-in account.'); }
   else initSync();
 }
 async function logout() {
-  if (cartCount() && !confirm('There are items in the current sale. Log out and clear it?')) return;
+  const hasCartItems = cartCount() > 0;
+  const message = hasCartItems
+    ? 'Are you sure you want to log out? Items in the current sale will be cleared.'
+    : 'Are you sure you want to log out?';
+  if (!await askConfirm({title: 'Log out?', message: hasCartItems ? 'Items in the current sale will be cleared if you log out.' : message, confirmText: 'Log out', danger: false})) return;
   try { await flushSync(); } catch (e) {}
   try { if (sb) await sb.auth.signOut({scope: 'local'}); } catch (e) {}
   try { localStorage.removeItem(FLAG); localStorage.removeItem(FLAG + '-email'); } catch (e) {}
@@ -927,19 +1041,23 @@ async function logout() {
 }
 let mode = 'signin', recovering = false;
 const MODE_TEXT = {
-  signin: ['Sign in to open the store', 'Sign in'],
-  signup: ['Create your account', 'Create account'],
-  forgot: ['We will email you a link to reset your password', 'Send reset link'],
+  signin: ['Need an account?', 'Log in'],
+  signup: ['Already have an account?', 'Create account'],
+  forgot: ['Enter your account email to receive a reset link.', 'Send reset link'],
   reset: ['Choose a new password', 'Save new password']
+};
+const MODE_TITLE = {
+  signin: 'Log in', signup: 'Create an account', forgot: 'Reset your password', reset: 'Choose a new password'
 };
 function setMode(m) {
   mode = m;
   $$('#loginForm [data-modes]').forEach(el => { el.hidden = !el.dataset.modes.split(' ').includes(m); });
+  $('#loginHeading').textContent = MODE_TITLE[m];
   $('#loginSub').textContent = MODE_TEXT[m][0]; $('#loginBtn').textContent = MODE_TEXT[m][1];
   $('#l-pw-label').textContent = m === 'reset' ? 'New password' : 'Password';
   $('#l-pw').autocomplete = m === 'signin' ? 'current-password' : 'new-password';
   ['#l-pw', '#l-pw2'].forEach(s => { $(s).value = ''; $(s).type = 'password'; });
-  $('#l-show').checked = false; setMsg('');
+  $('#showPasswordText').textContent = 'Show'; $('#l-show').setAttribute('aria-pressed', 'false'); setMsg('');
 }
 const redirectUrl = () => location.origin + location.pathname.replace(/index\.html$/, '');
 function authErr(err) {
@@ -955,11 +1073,18 @@ function authErr(err) {
   if (!navigator.onLine || /fetch|network/i.test(m) || (err && err.name === 'AuthRetryableFetchError')) return 'No internet connection. Connect and try again.';
   return 'Something went wrong. ' + m;
 }
-$('#l-show').addEventListener('change', e => { const t = e.target.checked ? 'text' : 'password'; $('#l-pw').type = t; $('#l-pw2').type = t; });
+$('#l-show').addEventListener('click', () => {
+  const visible = $('#l-pw').type === 'password', type = visible ? 'text' : 'password';
+  $('#l-pw').type = type; $('#l-pw2').type = type;
+  $('#showPasswordText').textContent = visible ? 'Hide' : 'Show';
+  $('#l-show').setAttribute('aria-pressed', String(visible));
+});
 $('#loginForm').addEventListener('click', async e => {
+  if (e.target.closest('[data-login-support]')) { setMsg('Contact your store administrator for help signing in.', 'info'); return; }
   const g = e.target.closest('[data-goto]'); if (!g) return;
   if (mode === 'reset') { recovering = false; try { if (sb) await sb.auth.signOut({scope: 'local'}); } catch (err) {} }
   setMode(g.dataset.goto);
+  if (g.dataset.recovery === 'username') setMsg('This store uses your email address to sign in. Enter it here if you need a password reset.', 'info');
 });
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1002,7 +1127,7 @@ async function start() {
   recovering = /type=recovery/.test(hash);
   const linkErr = /error_code=|error=access_denied/.test(hash);
   if (!configProblem()) {
-    sb = window.supabase.createClient(new URL(cfgUrl()).origin, cfgKey());
+    sb = window.supabase.createClient(new URL(cfgUrl()).origin, cfgKey(), {auth: {storage: authStorage}});
     sb.auth.onAuthStateChange(event => {
       if (event === 'PASSWORD_RECOVERY') { recovering = true; showLogin('Choose a new password to finish.', 'info', 'reset'); }
       if (event === 'SIGNED_OUT') {
@@ -1029,7 +1154,13 @@ async function start() {
 let snap = null, syncT = null, syncing = false, rev = 0, synced = false;
 const DIRTY = () => KEY + ':dirty', SYNCED = () => KEY + ':synced';
 const isDirty = () => { try { return localStorage.getItem(DIRTY()) === '1'; } catch (e) { return false; } };
-function setSync(t) { const el = $('#syncLine'); if (el) el.textContent = t; }
+function setSync(t) {
+  const el = $('#syncLine'); if (!el) return;
+  const state = /offline|retry/i.test(t) ? 'offline' : /syncing|saving|checking/i.test(t) ? 'working' : 'saved';
+  el.textContent = !t ? '' : /retry/i.test(t) ? 'Retrying' : state === 'offline' ? 'Offline' : state === 'working' ? 'Syncing' : 'Saved online';
+  el.hidden = !t; el.dataset.state = state;
+  el.title = t; el.setAttribute('aria-label', t || '');
+}
 function syncReset() { clearTimeout(syncT); snap = null; syncing = false; setSync(''); }
 
 const toProdRow = p => ({id: String(p.id), user_id: user.id, name: p.name, category: p.category || 'Others',
