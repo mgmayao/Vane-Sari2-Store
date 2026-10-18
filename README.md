@@ -27,7 +27,8 @@ The app opens on a sign-in page with Create account and Forgot password. It need
    - turning OFF "Confirm email" (Authentication > Sign In / Providers > Email) so new accounts work instantly with no email, and/or
    - setting up a custom SMTP sender (Authentication > SMTP Settings) so reset and confirmation emails reach anyone.
 5. Open `config.js` and paste your Project URL and publishable (anon) key. Never use the secret / service_role key.
-6. Test locally with Live Server, then deploy.
+6. In Supabase SQL Editor, run the SQL in `supabase-audit-events.sql` to enable synced void and stock history.
+7. Test locally with Live Server, then deploy.
 
 If `config.js` still has the placeholder values, the sign-in page shows "Setup needed" and nobody can enter.
 
@@ -36,7 +37,8 @@ Products > Import from Excel / CSV. The file needs a header row with a product n
 Optional columns: purchase price, stock, category. Use "Download CSV template" to see the layout.
 
 ## Good to know
-- Login only controls who can open the app. Store data is still saved in the browser of the device you use (localStorage), separately for each account. It is not shared between phone and laptop yet.
+- Login controls who can open the app. Store data is saved locally and synced to Supabase for that account. Open the app on each device while online; open devices check for remote changes about once a minute.
 - Log out keeps the data on the device; signing in again brings it back.
-- Download a backup from Reports > Store and data regularly. Clearing browser data deletes the store data.
-- Works offline after the first visit (sales are saved on the device).
+- Download a backup from Reports > Store and data regularly. Backups include sales, void history, and stock movements. Clearing browser data deletes the local copy.
+- Sale voids require a reason, stay in Reports as history, and return stock. Stock history records sales, voids, restocks, imports, and manual stock edits.
+- Works offline after the first visit; local changes sync when the device reconnects.

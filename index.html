@@ -299,6 +299,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
       <button class="btn outline small" data-act="template">Download CSV template</button>
     </div>
     <div id="plist"></div>
+    <div class="block"><h3>Stock history</h3><div id="stockHistory"></div></div>
   </section>
 
   <!-- UTANG -->
@@ -378,18 +379,18 @@ const seed = () => ({
     {id: uid(), name: 'Luncheon Meat Cut 1kg', category: 'Ham', cost: 150, price: 180, stock: 0, low: 2},
     {id: uid(), name: 'Pear Shape Ham 1kg', category: 'Ham', cost: 150, price: 185, stock: 0, low: 2}
   ],
-  sales: []
+  sales: [], auditEvents: []
 });
 const valid = d => d && Array.isArray(d.products) && Array.isArray(d.sales);
 function load() {
   try {
     let raw = localStorage.getItem(KEY);
     if (!raw && KEY !== KEYBASE) raw = localStorage.getItem(KEYBASE); // data saved before logins existed
-    if (raw) { const d = JSON.parse(raw); if (valid(d)) return d; }
+    if (raw) { const d = JSON.parse(raw); if (valid(d)) { if (!Array.isArray(d.auditEvents)) d.auditEvents = []; return d; } }
   } catch (e) {}
   return seed();
 }
-let S = {storeName: 'Vane Sari2 Store', products: [], sales: []};
+let S = {storeName: 'Vane Sari2 Store', products: [], sales: [], auditEvents: []};
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { toast('Could not save. Storage is full or blocked in this browser.', 'bad'); }
@@ -400,6 +401,18 @@ const ui = {tab: 'sell', cat: 'All', q: '', pf: 'all', pq: '', uq: '', range: 't
 const prod = id => S.products.find(p => p.id === id);
 const cats = () => [...new Set(S.products.map(p => p.category || 'Others'))].sort((a, b) => a.localeCompare(b));
 const isLow = p => (+p.stock || 0) <= (+p.low || 0);
+const mergeAuditEvents = (...lists) => [...new Map(lists.flat().filter(Boolean).map(e => [e.id, e])).values()];
+const mergeById = (local, remote) => [...new Map([...remote, ...local].map(row => [row.id, row])).values()];
+const isVoided = s => (S.auditEvents || []).some(e => e.type === 'sale_void' && e.entityId === s.id);
+const saleVoidReason = s => (S.auditEvents || []).find(e => e.type === 'sale_void' && e.entityId === s.id)?.payload?.reason || '';
+function recordAudit(type, entityId, payload) {
+  const event = {id: uid(), type, entityId: String(entityId), ts: Date.now(), payload};
+  S.auditEvents ||= []; S.auditEvents.unshift(event); return event;
+}
+function recordStockMovement(p, delta, reason, saleId) {
+  delta = Math.round(+delta || 0); if (!delta) return;
+  recordAudit('stock_movement', p.id, {productName: p.name, delta, reason, saleId: saleId || null});
+}
 
 /* ---------- toast + dialog ---------- */
 let toastT;
@@ -429,7 +442,7 @@ function renderHeader() {
   $('#storeName').textContent = S.storeName || 'My Store';
   document.title = (S.storeName || 'Store') + ' POS';
   const d = new Date(); d.setHours(0, 0, 0, 0);
-  const today = S.sales.filter(s => s.ts >= +d);
+  const today = S.sales.filter(s => s.ts >= +d && !isVoided(s));
   $('#todayLine').textContent = `Today: ${money(today.reduce((a, s) => a + s.total, 0))} from ${today.length} sale${today.length === 1 ? '' : 's'}`;
 }
 
@@ -474,7 +487,7 @@ function renderCart() {
   const n = cartCount();
   $('#cbCount').textContent = `${n} item${n === 1 ? '' : 's'}`; $('#cbTotal').textContent = money(t);
   $('#cartbar').hidden = !(n && ui.tab === 'sell');
-  $('#custlist').innerHTML = [...new Set(S.sales.map(s => s.customer).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join('');
+  $('#custlist').innerHTML = [...new Set(S.sales.filter(s => !isVoided(s)).map(s => s.customer).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join('');
   updatePay();
 }
 function updatePay() {
@@ -510,7 +523,7 @@ function checkout(mode) {
     customer, paid: mode === 'cash', paidAt: mode === 'cash' ? Date.now() : null,
     cash: mode === 'cash' ? cash : 0, change: mode === 'cash' ? r2(cash - t) : 0
   };
-  lines.forEach(({p, q}) => { p.stock = Math.max(0, (+p.stock || 0) - q); });
+  lines.forEach(({p, q}) => { p.stock = Math.max(0, (+p.stock || 0) - q); recordStockMovement(p, -q, 'Sale', sale.id); });
   S.sales.unshift(sale); save();
   clearCart(); renderHeader(); renderGrid();
   openDlg(`<h2>${mode === 'cash' ? 'Sale complete' : 'Charged to utang'}</h2>
@@ -530,6 +543,7 @@ function renderProducts() {
   $$('#pfilters .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.pf === ui.pf));
   const lowN = S.products.filter(isLow).length;
   $('#pfilters [data-pf="low"]').textContent = `Low stock${lowN ? ' (' + lowN + ')' : ''}`;
+  renderStockHistory();
   if (!list.length) {
     $('#plist').innerHTML = `<div class="empty"><strong>${S.products.length ? 'Nothing here' : 'No products yet'}</strong>${S.products.length ? 'Try a different search or filter.' : 'Add a product or import your Excel list.'}</div>`; return;
   }
@@ -537,11 +551,19 @@ function renderProducts() {
       <div class="p-main"><strong>${esc(p.name)}</strong>
         <span class="meta">${esc(p.category || 'Others')} · cost ${money(p.cost)} · sells ${money(p.price)} · earns ${money(p.price - p.cost)} each</span></div>
       <div class="p-stock ${isLow(p) ? 'low' : ''}">${+p.stock || 0}<small>in stock</small></div>
-      <div class="p-actions"><button class="btn outline small" data-restock="${p.id}">Add stock</button><button class="btn outline small" data-edit="${p.id}">Edit</button></div>
+      <div class="p-actions"><button class="btn outline small" data-restock="${p.id}">Add stock</button><button class="btn outline small" data-edit="${p.id}">Edit</button><button class="btn danger small" data-del="${p.id}">Delete</button></div>
     </div>`).join('')}</div>`;
+}
+function renderStockHistory() {
+  const moves = (S.auditEvents || []).filter(e => e.type === 'stock_movement').slice(0, 100);
+  $('#stockHistory').innerHTML = moves.length ? `<div class="rows">${moves.map(e => {
+    const delta = +e.payload.delta || 0;
+    return `<div class="rrow"><span><b>${esc(e.payload.productName || 'Product')}</b><small class="meta">${fmtDate(e.ts)} · ${esc(e.payload.reason || 'Stock change')}</small></span><b>${delta > 0 ? '+' : ''}${delta}</b></div>`;
+  }).join('')}</div>` : `<div class="empty">No stock changes recorded yet.</div>`;
 }
 function openProduct(id) {
   const p = id ? prod(id) : {name: '', category: ui.cat !== 'All' ? ui.cat : '', cost: '', price: '', stock: 0, low: 5};
+  const previousStock = id ? (+p.stock || 0) : 0;
   const catOpts = [...new Set([...DEFAULT_CATS, ...cats()])];
   openDlg(`<h2>${id ? 'Edit product' : 'Add product'}</h2>
     <form id="pf" novalidate>
@@ -554,6 +576,7 @@ function openProduct(id) {
         <div><label for="f-stock">Stock on hand</label><input id="f-stock" name="stock" inputmode="numeric" value="${esc(p.stock)}"></div>
         <div><label for="f-low">Warn when stock is at or below</label><input id="f-low" name="low" inputmode="numeric" value="${esc(p.low)}"></div>
       </div>
+      ${id ? '<label for="f-stockReason">Reason for stock change (when adjusting stock)</label><input id="f-stockReason" autocomplete="off">' : ''}
       <div class="dlg-actions">
         ${id ? `<button type="button" class="btn danger" data-del="${id}" style="margin-right:auto">Delete</button>` : ''}
         <button type="button" class="btn outline" data-act="closeDlg">Cancel</button>
@@ -574,7 +597,15 @@ function openProduct(id) {
       stock: Math.max(0, Math.round(isNaN(num(f.get('stock'))) ? 0 : num(f.get('stock')))),
       low: Math.max(0, Math.round(isNaN(num(f.get('low'))) ? 0 : num(f.get('low'))))
     };
-    if (id) Object.assign(prod(id), data); else S.products.push({id: uid(), ...data});
+    let stockReason = 'Initial stock';
+    if (id && data.stock !== previousStock) {
+      stockReason = $('#f-stockReason').value.trim();
+      if (!stockReason) { toast('Enter a reason for the stock change.', 'bad'); return; }
+    }
+    let savedProduct;
+    if (id) { savedProduct = prod(id); Object.assign(savedProduct, data); }
+    else { savedProduct = {id: uid(), ...data}; S.products.push(savedProduct); }
+    recordStockMovement(savedProduct, data.stock - previousStock, stockReason);
     save(); dlg.close(); renderProducts(); toast('Saved');
   });
   setTimeout(() => $('#f-name').focus(), 50);
@@ -589,7 +620,7 @@ function openRestock(id) {
     ev.preventDefault();
     const n = Math.round(num($('#r-qty').value));
     if (!(n > 0)) { toast('Enter a number above zero.', 'bad'); return; }
-    p.stock = (+p.stock || 0) + n; save(); dlg.close(); renderProducts(); toast(`Added ${n} to ${p.name}`);
+    p.stock = (+p.stock || 0) + n; recordStockMovement(p, n, 'Restock'); save(); dlg.close(); renderProducts(); toast(`Added ${n} to ${p.name}`);
   });
   setTimeout(() => $('#r-qty').focus(), 50);
 }
@@ -665,8 +696,14 @@ async function handleImport(file) {
     const defCat = res.hasCat ? 'Others' : ($('#i-cat').value.trim() || 'Others');
     for (const i of res.items) {
       const ex = existing.get(i.name.toLowerCase());
-      if (ex) { ex.price = i.price; ex.cost = i.cost || ex.cost; if (i.category) ex.category = i.category; if (i.stock !== null) ex.stock = i.stock; }
-      else S.products.push({id: uid(), name: i.name, category: i.category || defCat, cost: i.cost, price: i.price, stock: i.stock ?? 0, low: 5});
+      if (ex) {
+        const previousStock = +ex.stock || 0;
+        ex.price = i.price; ex.cost = i.cost || ex.cost; if (i.category) ex.category = i.category;
+        if (i.stock !== null) { ex.stock = i.stock; recordStockMovement(ex, i.stock - previousStock, 'CSV/Excel import'); }
+      } else {
+        const added = {id: uid(), name: i.name, category: i.category || defCat, cost: i.cost, price: i.price, stock: i.stock ?? 0, low: 5};
+        S.products.push(added); recordStockMovement(added, added.stock, 'Initial stock from import');
+      }
     }
     save(); dlg.close(); renderProducts(); toast(`Imported ${res.items.length} products`);
   });
@@ -681,7 +718,7 @@ const stamp = () => new Date().toISOString().slice(0, 10);
 /* ---------- UTANG ---------- */
 function renderUtang() {
   const groups = new Map();
-  S.sales.filter(s => !s.paid).forEach(s => {
+  S.sales.filter(s => !s.paid && !isVoided(s)).forEach(s => {
     const k = (s.customer || '?').toLowerCase();
     if (!groups.has(k)) groups.set(k, {name: s.customer || 'Unknown', sales: []});
     groups.get(k).sales.push(s);
@@ -701,7 +738,7 @@ function renderUtang() {
     const owed = g.sales.reduce((a, s) => a + s.total, 0);
     return `<div class="debtor"><header><h3>${esc(g.name)}</h3><span class="owe">${money(owed)}</span></header>
       ${g.sales.map(s => `<div class="d-sale"><div><b>${money(s.total)}</b><div class="meta">${fmtDate(s.ts)} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}</div></div>
-        <button class="btn outline small" data-paid="${s.id}">Mark paid</button></div>`).join('')}
+        <div style="display:flex;gap:8px"><button class="btn outline small" data-paid="${s.id}">Mark paid</button><button class="btn danger small" data-void="${s.id}">Void</button></div></div>`).join('')}
       <div style="margin-top:10px"><button class="btn primary" data-paidall="${esc((g.name).toLowerCase())}">Collect all ${money(owed)}</button></div></div>`;
   }).join('');
 }
@@ -714,9 +751,31 @@ function rangeStart() {
   if (ui.range === '30d') return +d - 29 * 864e5;
   return 0;
 }
+function openVoidSale(id) {
+  const sale = S.sales.find(s => s.id === id && !isVoided(s)); if (!sale) return;
+  openDlg(`<h2>Void sale</h2><p class="meta">${money(sale.total)} will be removed from totals, and its items will be returned to stock. The sale stays in history.</p>
+    <form id="voidForm" novalidate><label for="voidReason">Reason for void</label><input id="voidReason" required autocomplete="off">
+      <div class="dlg-actions"><button type="button" class="btn outline" data-act="closeDlg">Cancel</button><button type="submit" class="btn danger">Void sale and restore stock</button></div></form>`);
+  $('#voidForm').addEventListener('submit', ev => {
+    ev.preventDefault();
+    const reason = $('#voidReason').value.trim();
+    if (!reason) { toast('Enter a reason for the void.', 'bad'); return; }
+    const current = S.sales.find(s => s.id === id && !isVoided(s)); if (!current) { dlg.close(); return; }
+    current.items.forEach(i => {
+      const p = prod(i.pid);
+      if (p) { p.stock = (+p.stock || 0) + i.qty; recordStockMovement(p, i.qty, 'Sale voided', current.id); }
+    });
+    recordAudit('sale_void', current.id, {reason, customer: current.customer || '', total: current.total});
+    save(); dlg.close(); renderUtang(); renderReports(); renderHeader();
+    if (ui.tab === 'products') renderProducts();
+    toast('Sale voided and retained in history');
+  });
+  setTimeout(() => $('#voidReason').focus(), 50);
+}
 function renderReports() {
   $$('#ranges .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.range === ui.range));
-  const list = S.sales.filter(s => s.ts >= rangeStart());
+  const history = S.sales.filter(s => s.ts >= rangeStart());
+  const list = history.filter(s => !isVoided(s));
   const sum = (arr, f) => r2(arr.reduce((a, x) => a + f(x), 0));
   const sales = sum(list, s => s.total), profit = sum(list, s => s.profit);
   const unpaid = sum(list.filter(s => !s.paid), s => s.total);
@@ -731,9 +790,9 @@ function renderReports() {
   list.forEach(s => s.items.forEach(i => { const t = tally.get(i.name) || {q: 0, amt: 0}; t.q += i.qty; t.amt += i.qty * i.price; tally.set(i.name, t); }));
   const tops = [...tally.entries()].sort((a, b) => b[1].q - a[1].q).slice(0, 8);
   $('#tops').innerHTML = tops.length ? `<div class="rows">${tops.map(([n, t]) => `<div class="rrow"><span>${esc(n)}</span><b>${t.q} sold · ${money(t.amt)}</b></div>`).join('')}</div>` : `<div class="empty">No sales in this period yet.</div>`;
-  $('#salesList').innerHTML = list.length ? `<div class="rows">${list.slice(0, 100).map(s => `<div class="rrow"><div><b>${money(s.total)}</b>${s.paid ? '' : '<span class="pill">Utang</span>'}${s.customer ? ` <span class="meta">${esc(s.customer)}</span>` : ''}
-      <div class="meta">${fmtDate(s.ts)} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}</div></div>
-      <button class="btn outline small" data-void="${s.id}">Void</button></div>`).join('')}</div>${list.length > 100 ? `<p class="meta">Showing the latest 100. Export the CSV for everything.</p>` : ''}` : `<div class="empty">No sales in this period yet.</div>`;
+    $('#salesList').innerHTML = history.length ? `<div class="rows">${history.slice(0, 100).map(s => `<div class="rrow"><div><b>${money(s.total)}</b>${isVoided(s) ? '<span class="pill">Voided</span>' : s.paid ? '' : '<span class="pill">Utang</span>'}${s.customer ? ` <span class="meta">${esc(s.customer)}</span>` : ''}
+      <div class="meta">${fmtDate(s.ts)} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}${isVoided(s) ? ` · Reason: ${esc(saleVoidReason(s))}` : ''}</div></div>
+      ${isVoided(s) ? '' : `<button class="btn outline small" data-void="${s.id}">Void</button>`}</div>`).join('')}</div>${history.length > 100 ? `<p class="meta">Showing the latest 100. Export the CSV for everything.</p>` : ''}` : `<div class="empty">No sales in this period yet.</div>`;
   $('#storeInput').value = S.storeName || '';
   $('#whoami').textContent = user && user.email ? 'Signed in as ' + user.email : '';
 }
@@ -753,20 +812,19 @@ document.addEventListener('click', e => {
   if (d.restock) return openRestock(d.restock);
   if (d.pf) { ui.pf = d.pf; renderProducts(); return; }
   if (d.range) { ui.range = d.range; renderReports(); return; }
-  if (d.paid) { const s = S.sales.find(x => x.id === d.paid); if (s) { s.paid = true; s.paidAt = Date.now(); save(); renderUtang(); renderHeader(); toast('Marked as paid'); } return; }
+  if (d.paid) { const s = S.sales.find(x => x.id === d.paid && !isVoided(x)); if (s) { s.paid = true; s.paidAt = Date.now(); save(); renderUtang(); renderHeader(); toast('Marked as paid'); } return; }
   if (d.paidall) {
-    let n = 0; S.sales.forEach(s => { if (!s.paid && (s.customer || 'Unknown').toLowerCase() === d.paidall) { s.paid = true; s.paidAt = Date.now(); n++; } });
+    let n = 0; S.sales.forEach(s => { if (!s.paid && !isVoided(s) && (s.customer || 'Unknown').toLowerCase() === d.paidall) { s.paid = true; s.paidAt = Date.now(); n++; } });
     save(); renderUtang(); toast(`Collected ${n} unpaid sale${n === 1 ? '' : 's'}`); return;
   }
   if (d.void) {
-    const s = S.sales.find(x => x.id === d.void); if (!s) return;
-    if (!confirm(`Void this ${money(s.total)} sale? Stock will be put back.`)) return;
-    s.items.forEach(i => { const p = prod(i.pid); if (p) p.stock = (+p.stock || 0) + i.qty; });
-    S.sales = S.sales.filter(x => x.id !== s.id); save(); renderReports(); renderHeader(); toast('Sale voided'); return;
+    openVoidSale(d.void); return;
   }
   if (d.del) {
     const p = prod(d.del); if (!p) return;
     if (!confirm(`Delete "${p.name}"? Past sales are kept.`)) return;
+    recordAudit('product_deleted', p.id, {productName: p.name, stock: +p.stock || 0});
+    recordStockMovement(p, -(+p.stock || 0), 'Product deleted');
     S.products = S.products.filter(x => x.id !== p.id); delete cart[p.id]; save(); dlg.close(); renderProducts(); toast('Product deleted'); return;
   }
   switch (d.act) {
@@ -780,12 +838,14 @@ document.addEventListener('click', e => {
     case 'template':
       download('products-template.csv', 'Product Name,Category,Purchase Price,Selling Price,Stock\nCoke Mismo 195ml,Soft Drinks,11,15,24\nSkyflakes 10s,Crackers,42,50,12\nOreo 29g,Biscuits,8,10,30\n'); break;
     case 'exportSales':
-      download(`sales-${stamp()}.csv`, ['Date,Customer,Items,Total,Profit,Status'].concat(S.sales.map(s => [new Date(s.ts).toLocaleString('en-PH'), s.customer, s.items.map(i => i.qty + ' x ' + i.name).join('; '), s.total, s.profit, s.paid ? 'Paid' : 'Utang'].map(csvCell).join(','))).join('\n')); break;
+      download(`sales-${stamp()}.csv`, ['Date,Customer,Items,Total,Profit,Status,Void reason'].concat(S.sales.map(s => [new Date(s.ts).toLocaleString('en-PH'), s.customer, s.items.map(i => i.qty + ' x ' + i.name).join('; '), s.total, s.profit, isVoided(s) ? 'Voided' : s.paid ? 'Paid' : 'Utang', saleVoidReason(s)].map(csvCell).join(','))).join('\n')); break;
     case 'backup': download(`${(S.storeName || 'store').replace(/\W+/g, '-').toLowerCase()}-backup-${stamp()}.json`, JSON.stringify({app: 'vane-pos', version: 1, data: S}), 'application/json'); break;
     case 'restore': $('#restoreFile').click(); break;
     case 'wipe':
       if (confirm('Erase ALL products and sales on this device? This cannot be undone. Download a backup first if unsure.')) {
-        S = {storeName: S.storeName, products: [], sales: []}; cart = {}; save(); renderHeader(); renderReports(); toast('All data erased');
+        S = {storeName: S.storeName, products: [], sales: [], auditEvents: S.auditEvents || []};
+        recordAudit('store_wipe', 'store', {reason: 'Manual data erase'});
+        cart = {}; save(); renderHeader(); renderReports(); toast('Products and sales erased');
       } break;
   }
 });
@@ -806,7 +866,9 @@ $('#restoreFile').addEventListener('change', async e => {
     const j = JSON.parse(await f.text()), d = j && j.data ? j.data : j;
     if (!valid(d)) throw new Error('bad');
     if (!confirm(`Replace everything on this device with the backup (${d.products.length} products, ${d.sales.length} sales)?`)) return;
-    S = d; cart = {}; save(); renderHeader(); setTab('reports'); toast('Backup restored');
+    S = {...d, auditEvents: mergeAuditEvents(S.auditEvents, d.auditEvents)};
+    recordAudit('backup_restore', 'store', {productCount: S.products.length, saleCount: S.sales.length});
+    cart = {}; save(); renderHeader(); setTab('reports'); toast('Backup restored');
   } catch (err) { toast('That file is not a valid backup.', 'bad'); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
@@ -979,6 +1041,9 @@ const toSaleRow = s => ({id: String(s.id), user_id: user.id, ts: new Date(s.ts).
 const fromSaleRow = r => ({id: r.id, ts: +new Date(r.ts), items: r.items || [], total: Number(r.total), profit: Number(r.profit),
   customer: r.customer || '', paid: !!r.paid, paidAt: r.paid_at ? +new Date(r.paid_at) : null,
   cash: Number(r.cash_received), change: Number(r.change_given)});
+const toAuditRow = e => ({id: String(e.id), user_id: user.id, type: e.type, entity_id: String(e.entityId),
+  ts: new Date(e.ts).toISOString(), payload: e.payload || {}});
+const fromAuditRow = r => ({id: r.id, type: r.type, entityId: r.entity_id, ts: +new Date(r.ts), payload: r.payload || {}});
 const rowMap = (list, toRow) => new Map(list.map(x => { const r = toRow(x); return [r.id, JSON.stringify(r)]; }));
 
 async function fetchAll(table, col, asc) {
@@ -993,20 +1058,25 @@ async function fetchAll(table, col, asc) {
 }
 async function pushDiff() {
   const chunk = (a, n) => { const o = []; for (let i = 0; i < a.length; i += n) o.push(a.slice(i, i + n)); return o; };
-  const sets = [['products', S.products.map(toProdRow), snap.p], ['sales', S.sales.map(toSaleRow), snap.s]];
+  const sets = [['products', S.products.map(toProdRow), snap.p], ['sales', S.sales.map(toSaleRow), snap.s],
+    ['audit_events', (S.auditEvents || []).map(toAuditRow), snap.a]];
   for (const [table, rows, map] of sets) {
     const now = new Map(rows.map(r => [r.id, JSON.stringify(r)]));
     const up = rows.filter(r => map.get(r.id) !== now.get(r.id));
     const del = [...map.keys()].filter(id => !now.has(id));
     for (const part of chunk(up, 300)) {
-      const {error} = await sb.from(table).upsert(part, {onConflict: 'user_id,id'});
+      const options = {onConflict: 'user_id,id'};
+      if (table === 'audit_events') options.ignoreDuplicates = true;
+      const {error} = await sb.from(table).upsert(part, options);
       if (error) throw error;
       part.forEach(r => map.set(r.id, now.get(r.id)));
     }
-    for (const part of chunk(del, 100)) {
-      const {error} = await sb.from(table).delete().eq('user_id', user.id).in('id', part);
-      if (error) throw error;
-      part.forEach(id => map.delete(id));
+    if (table !== 'audit_events') {
+      for (const part of chunk(del, 100)) {
+        const {error} = await sb.from(table).delete().eq('user_id', user.id).in('id', part);
+        if (error) throw error;
+        part.forEach(id => map.delete(id));
+      }
     }
   }
   const name = S.storeName || 'My Store';
@@ -1020,22 +1090,32 @@ async function initSync() {
   const me = user && user.id; if (!me || !sb) return;
   setSync('Syncing…');
   try {
-    const [pr, sr, st] = await Promise.all([fetchAll('products', 'name', true), fetchAll('sales', 'ts', false),
+    const [pr, sr, ar, st] = await Promise.all([fetchAll('products', 'name', true), fetchAll('sales', 'ts', false),
+      fetchAll('audit_events', 'ts', false),
       sb.from('store_settings').select('store_name').maybeSingle()]);
     if (st.error) throw st.error;
     if (!user || user.id !== me) return;
-    const remote = {storeName: st.data ? st.data.store_name : null, products: pr.map(fromProdRow), sales: sr.map(fromSaleRow)};
-    snap = {p: rowMap(remote.products, toProdRow), s: rowMap(remote.sales, toSaleRow), name: remote.storeName};
-    const remoteEmpty = !remote.products.length && !remote.sales.length && remote.storeName == null;
+    const remote = {storeName: st.data ? st.data.store_name : null, products: pr.map(fromProdRow), sales: sr.map(fromSaleRow), auditEvents: ar.map(fromAuditRow)};
+    snap = {p: rowMap(remote.products, toProdRow), s: rowMap(remote.sales, toSaleRow), a: rowMap(remote.auditEvents, toAuditRow), name: remote.storeName};
+    const remoteEmpty = !remote.products.length && !remote.sales.length && !remote.auditEvents.length && remote.storeName == null;
     const wasSynced = localStorage.getItem(SYNCED()) === '1';
     if (isDirty() || (remoteEmpty && !wasSynced)) {
+      const auditEvents = mergeAuditEvents(S.auditEvents, remote.auditEvents);
+      const deletedProducts = new Set(auditEvents.filter(e => e.type === 'product_deleted').map(e => String(e.entityId)));
+      S = {storeName: S.storeName || remote.storeName || 'My Store',
+        products: mergeById(S.products, remote.products).filter(p => !deletedProducts.has(String(p.id))),
+        sales: mergeById(S.sales, remote.sales), auditEvents};
       await pushDiff();            // this device has newer data (or first time): send it up
       localStorage.removeItem(DIRTY());
     } else {
-      S = {storeName: remote.storeName || S.storeName, products: remote.products, sales: remote.sales};
-      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-      renderHeader(); setTab(ui.tab);
+      const auditEvents = mergeAuditEvents(S.auditEvents, remote.auditEvents);
+      const deletedProducts = new Set(auditEvents.filter(e => e.type === 'product_deleted').map(e => String(e.entityId)));
+      S = {storeName: remote.storeName || S.storeName, products: remote.products.filter(p => !deletedProducts.has(String(p.id))),
+        sales: remote.sales, auditEvents};
+      if ((S.auditEvents || []).some(e => !snap.a.has(String(e.id)))) queueSync();
     }
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    renderHeader(); setTab(ui.tab);
     localStorage.setItem(SYNCED(), '1');
     setSync('✓ Saved online');
   } catch (e) {
@@ -1061,7 +1141,27 @@ async function runSync() {
   finally { syncing = false; }
 }
 async function flushSync() { clearTimeout(syncT); if (user && snap && isDirty()) await runSync(); }
-function retrySync() { if (!user || !sb) return; if (!snap) initSync(); else if (isDirty()) runSync(); }
+async function pullRemote() {
+  const me = user && user.id; if (!me || !sb || !snap || syncing || isDirty()) return;
+  syncing = true; const r = rev; setSync('Checking for updates…');
+  try {
+    const [pr, sr, ar, st] = await Promise.all([fetchAll('products', 'name', true), fetchAll('sales', 'ts', false),
+      fetchAll('audit_events', 'ts', false), sb.from('store_settings').select('store_name').maybeSingle()]);
+    if (st.error) throw st.error;
+    if (!user || user.id !== me || r !== rev || isDirty()) return;
+    const products = pr.map(fromProdRow), sales = sr.map(fromSaleRow), auditEvents = ar.map(fromAuditRow);
+    const mergedEvents = mergeAuditEvents(S.auditEvents, auditEvents);
+    S = {storeName: st.data ? st.data.store_name : S.storeName, products, sales, auditEvents: mergedEvents};
+    snap = {p: rowMap(products, toProdRow), s: rowMap(sales, toSaleRow), a: rowMap(ar.map(fromAuditRow), toAuditRow), name: S.storeName};
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    renderHeader(); setTab(ui.tab);
+    if (mergedEvents.some(e => !snap.a.has(String(e.id)))) queueSync();
+    else setSync('✓ Saved online');
+  } catch (e) {
+    setSync('Offline: saved on this device'); console.warn('Sync refresh failed:', e);
+  } finally { syncing = false; }
+}
+function retrySync() { if (!user || !sb) return; if (!snap) initSync(); else if (isDirty()) runSync(); else pullRemote(); }
 window.addEventListener('online', retrySync);
 setInterval(() => { if (navigator.onLine) retrySync(); }, 60000);
 
