@@ -105,7 +105,7 @@ body.locked{min-height:100dvh;padding-bottom:0;background:#F6F6F4;color:#201F1D;
 .sync-status[data-state="offline"]{color:#F1D8D5;background:#503B39}
 .sync-status[data-state="offline"]::before{background:#D78B82}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #3D3E3A}
+  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #3D3E3A}
 .tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#C6C7C3;font-size:.78rem;font-weight:600}
 .tabs button[aria-current="page"]{color:#8CCBD0}
 .tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -204,6 +204,33 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .report-metric strong{display:block;margin-top:5px;font-size:1.2rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .report-metric.profit strong{color:var(--accent)}
 .report-metric.unpaid strong{color:var(--bad)}
+.dashboard-head,.dashboard-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dashboard-head{margin-bottom:14px}
+.dashboard-head p{margin:5px 0 0}
+.dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.dashboard-metric{min-width:0;padding:14px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.dashboard-metric span{display:block;color:var(--ink2);font-size:.82rem;font-weight:600}
+.dashboard-metric strong{display:block;margin-top:5px;font-size:1.25rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dashboard-metric.highlight{border-top:3px solid var(--accent)}
+.dashboard-note{margin:10px 0 0}
+.dashboard-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,.8fr);gap:14px;margin-top:22px;align-items:start}
+.dashboard-panel{min-width:0;background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px}
+.dashboard-panel h3{font-size:1.1rem}
+.dashboard-table-wrap{overflow-x:auto;margin-top:10px}
+.dashboard-table{width:100%;min-width:610px;border-collapse:collapse;font-size:.86rem}
+.dashboard-table th,.dashboard-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
+.dashboard-table th{color:var(--ink2);font-size:.78rem;font-weight:700;white-space:nowrap}
+.dashboard-table td.num,.dashboard-table th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dashboard-table td:first-child{font-weight:600}
+.dashboard-table td small{display:block;color:var(--ink2);font-weight:400}
+.dashboard-table .profit-value{color:var(--accent);font-weight:700}
+.dashboard-low-list{margin-top:10px}
+.dashboard-low-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.dashboard-low-row:last-child{border-bottom:0}
+.dashboard-low-row strong{display:block;overflow-wrap:anywhere}
+.dashboard-low-row small{color:var(--ink2)}
+.dashboard-low-count{flex:none;color:var(--bad);font-weight:700;font-variant-numeric:tabular-nums}
+.dashboard-low-empty{padding:18px 4px;color:var(--ink2);font-size:.92rem}
 .lrow{display:flex;align-items:baseline;padding:11px 0}
 .lrow i{flex:1;border-bottom:2px dotted var(--line);margin:0 8px;transform:translateY(-4px)}
 .lrow span{color:var(--ink2);font-weight:600}
@@ -256,7 +283,14 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   .report-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .report-metric{padding:11px 12px}
   .report-metric strong{font-size:1.1rem}
+  .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .dashboard-metric{padding:11px 12px}
+  .dashboard-metric strong{font-size:1.05rem}
+  .dashboard-layout{grid-template-columns:minmax(0,1fr);gap:10px}
+  .dashboard-panel{padding:12px}
 }
+@media (max-width:380px){.tabs button{font-size:.68rem;gap:2px}.tabs svg{width:21px;height:21px}}
+@media (max-width:760px){.dashboard-layout{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -305,6 +339,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   </div>
   <nav class="tabs" id="tabs" aria-label="Main">
     <button data-tab="sell" aria-current="page"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Sell</button>
+    <button data-tab="dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>Dashboard</button>
     <button data-tab="products"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>Products</button>
     <button data-tab="utang"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Utang</button>
     <button data-tab="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
@@ -313,6 +348,17 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
 </header>
 
 <main hidden>
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view" hidden>
+    <div class="dashboard-head"><div><h2>Dashboard</h2><p class="meta">Inventory value and sales at a glance.</p></div>
+      <button class="btn outline small" data-tab="products">Manage products</button></div>
+    <div id="dashboardMetrics" class="dashboard-metrics" aria-label="Store overview"></div>
+    <p class="meta dashboard-note">Potential gross profit is based on current stock: (SRP − purchase price) × units on hand.</p>
+    <div class="dashboard-layout">
+      <section class="dashboard-panel"><div class="dashboard-panel-head"><h3>Profit potential by product</h3><span class="meta">Current stock at SRP</span></div><div id="dashboardProducts"></div></section>
+      <section class="dashboard-panel"><div class="dashboard-panel-head"><h3>Restock attention</h3><button class="link" data-tab="products">View products</button></div><div id="dashboardLowStock"></div></section>
+    </div>
+  </section>
   <!-- SELL -->
   <section id="view-sell" class="view sell">
     <div class="catalog">
@@ -469,7 +515,7 @@ let cart = {};
 const ui = {tab: 'sell', cat: 'All', q: '', pf: 'all', pq: '', uq: '', range: 'today'};
 const prod = id => S.products.find(p => p.id === id);
 const cats = () => [...new Set(S.products.map(p => p.category || 'Others'))].sort((a, b) => a.localeCompare(b));
-const isLow = p => (+p.stock || 0) <= (+p.low || 0);
+const isLow = p => (+p.stock || 0) < (+p.low || 0);
 const mergeAuditEvents = (...lists) => [...new Map(lists.flat().filter(Boolean).map(e => [e.id, e])).values()];
 const mergeById = (local, remote) => [...new Map([...remote, ...local].map(row => [row.id, row])).values()];
 const isVoided = s => (S.auditEvents || []).some(e => e.type === 'sale_void' && e.entityId === s.id);
@@ -520,6 +566,7 @@ function setTab(t) {
   $$('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   closeCart();
   if (t === 'sell') { renderCats(); renderGrid(); renderCart(); }
+  if (t === 'dashboard') renderDashboard();
   if (t === 'products') renderProducts();
   if (t === 'utang') renderUtang();
   if (t === 'reports') renderReports();
@@ -536,6 +583,41 @@ function renderHeader() {
   const d = new Date(); d.setHours(0, 0, 0, 0);
   const today = S.sales.filter(s => s.ts >= +d && !isVoided(s));
   $('#todayLine').textContent = `Today: ${money(today.reduce((a, s) => a + s.total, 0))} from ${today.length} sale${today.length === 1 ? '' : 's'}`;
+}
+
+function renderDashboard() {
+  const products = S.products.map(p => {
+    const stock = Math.max(0, Math.round(+p.stock || 0));
+    const cost = +p.cost || 0, price = +p.price || 0;
+    return {...p, stock, cost, price, unitProfit: r2(price - cost), stockCost: r2(cost * stock), stockSrp: r2(price * stock), potentialProfit: r2((price - cost) * stock)};
+  });
+  const inventoryCost = r2(products.reduce((sum, p) => sum + p.stockCost, 0));
+  const inventorySrp = r2(products.reduce((sum, p) => sum + p.stockSrp, 0));
+  const potentialProfit = r2(inventorySrp - inventoryCost);
+  const units = products.reduce((sum, p) => sum + p.stock, 0);
+  const lowStock = products.filter(isLow).sort((a, b) => a.stock - b.stock);
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  const todaySales = r2(S.sales.filter(s => s.ts >= +dayStart && !isVoided(s)).reduce((sum, s) => sum + (+s.total || 0), 0));
+  const marginRate = inventorySrp ? (potentialProfit / inventorySrp) * 100 : 0;
+  const metrics = [
+    ['Purchase value', money(inventoryCost), ''], ['SRP value', money(inventorySrp), ''],
+    ['Potential gross profit', money(potentialProfit), 'highlight'], ['Gross margin', `${marginRate.toFixed(1)}%`, ''],
+    ['Units on hand', units.toLocaleString('en-PH'), ''], ['Products', products.length.toLocaleString('en-PH'), ''],
+    ['Low-stock products', lowStock.length.toLocaleString('en-PH'), lowStock.length ? 'warning' : ''], ['Sales today', money(todaySales), '']
+  ];
+  $('#dashboardMetrics').innerHTML = metrics.map(([label, value, kind]) =>
+    `<div class="dashboard-metric ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join('');
+
+  const ranked = [...products].sort((a, b) => b.potentialProfit - a.potentialProfit);
+  $('#dashboardProducts').innerHTML = ranked.length ? `<div class="dashboard-table-wrap"><table class="dashboard-table">
+    <thead><tr><th>Product</th><th class="num">Stock</th><th class="num">Purchase</th><th class="num">SRP</th><th class="num">Profit / unit</th><th class="num">Potential profit</th></tr></thead>
+    <tbody>${ranked.slice(0, 20).map(p => `<tr><td>${esc(p.name)}<small>${esc(p.category || 'Others')}</small></td><td class="num">${p.stock}</td><td class="num">${money(p.cost)}</td><td class="num">${money(p.price)}</td><td class="num">${money(p.unitProfit)}</td><td class="num profit-value">${money(p.potentialProfit)}</td></tr>`).join('')}</tbody>
+    </table></div>${ranked.length > 20 ? `<p class="meta">Showing the top 20 of ${ranked.length} products by potential profit.</p>` : ''}`
+    : `<div class="empty" style="margin-top:10px"><strong>No products yet</strong>Add products to see purchase cost, SRP, and profit potential.</div>`;
+
+  $('#dashboardLowStock').innerHTML = lowStock.length ? `<div class="dashboard-low-list">${lowStock.slice(0, 8).map(p =>
+    `<div class="dashboard-low-row"><span><strong>${esc(p.name)}</strong><small>${esc(p.category || 'Others')} · reorder point ${+p.low || 0}</small></span><span class="dashboard-low-count">${p.stock} left</span></div>`).join('')}</div>${lowStock.length > 8 ? `<p class="meta">${lowStock.length - 8} more products need attention.</p>` : ''}`
+    : `<div class="dashboard-low-empty">All products are above their low-stock limits.</div>`;
 }
 
 /* ---------- SELL ---------- */
@@ -666,7 +748,7 @@ function openProduct(id) {
         <div><label for="f-cost">Purchase price (₱)</label><input id="f-cost" name="cost" inputmode="decimal" value="${esc(p.cost)}"></div>
         <div><label for="f-price">Selling price (₱)</label><input id="f-price" name="price" inputmode="decimal" value="${esc(p.price)}" required></div>
         <div><label for="f-stock">Stock on hand</label><input id="f-stock" name="stock" inputmode="numeric" value="${esc(p.stock)}"></div>
-        <div><label for="f-low">Warn when stock is at or below</label><input id="f-low" name="low" inputmode="numeric" value="${esc(p.low)}"></div>
+        <div><label for="f-low">Reorder point (restock below)</label><input id="f-low" name="low" inputmode="numeric" value="${esc(p.low)}"></div>
       </div>
       ${id ? '<label for="f-stockReason">Reason for stock change (when adjusting stock)</label><input id="f-stockReason" autocomplete="off">' : ''}
       <div class="dlg-actions">
