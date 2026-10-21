@@ -89,6 +89,8 @@ body.locked{min-height:100dvh;padding-bottom:0;background:#F6F6F4;color:#201F1D;
   .login-footer{line-height:1.7}
 }
 .top .logout{background:transparent;border:1.5px solid #5A5B56;color:#fff;flex:none}
+.top .admin-entry{flex:none;background:#727CF5;color:#fff}
+.top .admin-entry:hover{background:#606CEB}
 
 /* header + nav */
 .top{background:var(--ink);color:#fff;padding:12px 16px calc(12px) ;padding-top:calc(12px + env(safe-area-inset-top,0px));
@@ -105,7 +107,7 @@ body.locked{min-height:100dvh;padding-bottom:0;background:#F6F6F4;color:#201F1D;
 .sync-status[data-state="offline"]{color:#F1D8D5;background:#503B39}
 .sync-status[data-state="offline"]::before{background:#D78B82}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #3D3E3A}
+  padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink);display:grid;grid-template-columns:1fr;border-top:1px solid #3D3E3A}
 .tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#C6C7C3;font-size:.78rem;font-weight:600}
 .tabs button[aria-current="page"]{color:#8CCBD0}
 .tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -169,6 +171,8 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .quick button{flex:1 1 auto;min-height:40px;padding:0 10px;border-radius:10px;background:var(--wash);border:1.5px solid var(--line);font-weight:700}
 .pay-actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
 .pay-actions .btn{min-height:54px;font-size:1.05rem}
+.customer-order-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.customer-order-button{width:100%;min-height:54px;font-size:1.05rem}
 .clear-wrap{text-align:center;margin-top:6px}
 .cartbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:32;
   min-height:56px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:space-between;
@@ -188,6 +192,126 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .p-stock.low{color:var(--bad)}
 .p-stock.low small{color:var(--bad);font-weight:700}
 .p-actions{grid-column:1/-1;display:flex;gap:8px}
+.user-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.user-row:last-child{border-bottom:0}
+.user-main{min-width:0}
+.user-main strong,.user-main span{display:block;overflow-wrap:anywhere}
+.user-actions{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+
+/* admin dashboard */
+body.admin-mode{padding:0;background:#F8F9FC;color:#313A46}
+body.admin-mode main{max-width:none;padding:0;margin:0}
+.admin-shell{position:fixed;inset:0;z-index:40;display:grid;grid-template-columns:250px minmax(0,1fr);overflow:auto;background:#F8F9FC;color:#313A46;font:14px/1.5 var(--fb)}
+.admin-sidebar{position:sticky;top:0;height:100dvh;padding:22px 15px;background:#313A46;color:#AAB2BF;display:flex;flex-direction:column;gap:24px;overflow-y:auto}
+.admin-logo{display:flex;align-items:center;gap:10px;padding:0 10px;color:#fff;font:800 1.2rem var(--fh);letter-spacing:.08em}
+.admin-logo-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#727CF5;color:#fff;font-size:1rem;letter-spacing:0}
+.admin-nav-label{margin:0 10px 8px;color:#8391A2;font-size:.68rem;font-weight:800;letter-spacing:.12em}
+.admin-nav{display:grid;gap:4px}
+.admin-nav button{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 11px;border-radius:5px;color:#AAB2BF;text-align:left;font-size:.9rem;transition:background .16s,color .16s}
+.admin-nav button:hover{background:#3B4655;color:#fff}
+.admin-nav button.active{background:#727CF5;color:#fff}
+.admin-nav svg,.admin-icon-button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.admin-sidebar-footer{margin-top:auto;border-top:1px solid #414B59;padding-top:14px}
+.admin-sidebar-footer>button{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 11px;border-radius:5px;color:#AAB2BF;text-align:left}
+.admin-sidebar-footer>button:hover{background:#3B4655;color:#fff}
+.admin-sidebar-footer>button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.admin-workspace{min-width:0}
+.admin-topbar{position:sticky;top:0;z-index:3;min-height:68px;padding:10px 26px;background:#fff;box-shadow:0 2px 8px rgba(49,58,70,.06);display:flex;align-items:center;gap:16px}
+.admin-icon-button{width:38px;height:38px;display:grid;place-items:center;border-radius:5px;color:#6C757D;transition:background .16s,color .16s}
+.admin-icon-button:hover{background:#F1F2F7;color:#727CF5}
+.admin-search{display:flex;max-width:430px;flex:1}
+.admin-search input{min-width:0;min-height:38px;border:1px solid #E3E7ED;border-radius:5px 0 0 5px;font-size:.86rem}
+.admin-search button{padding:0 15px;border-radius:0 5px 5px 0;background:#727CF5;color:white;font-weight:700}
+.admin-profile{display:flex;align-items:center;gap:10px;margin-left:auto;white-space:nowrap}
+.admin-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#E9EAFE;color:#727CF5;font-weight:800}
+.admin-profile strong,.admin-profile small{display:block}
+.admin-profile small{color:#98A6B3}
+.admin-content{width:min(1480px,100%);margin:0 auto;padding:27px}
+.admin-page-head{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:22px}
+.admin-page-head h2{font:700 1.45rem var(--fb);color:#313A46}
+.admin-page-head p{margin:4px 0 0;color:#98A6B3}
+.admin-page-actions{display:flex;gap:8px;align-items:center}
+.admin-page-actions .btn{min-height:38px;border-radius:5px}
+.admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.admin-form-grid label{margin-top:0;color:#6C757D}
+.admin-form-grid input,.admin-form-grid select{margin-top:5px;min-height:42px;border:1px solid #E3E7ED;border-radius:5px;font-size:.9rem}
+.admin-form-grid .span-all{grid-column:1/-1}
+.admin-primary{background:#727CF5;color:#fff}
+.admin-primary:hover{background:#606CEB}
+.admin-secondary{background:#fff;border:1px solid #E3E7ED;color:#6C757D}
+.admin-danger{background:#FFF0F2;color:#FA5C7C}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:22px}
+.admin-stat{min-width:0;padding:19px 20px;background:#fff;border:1px solid #EEF0F4;border-radius:5px;box-shadow:0 2px 6px rgba(49,58,70,.045)}
+.admin-stat-label{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#98A6B3;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.admin-stat-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#EEEFFF;color:#727CF5;font-size:1.1rem}
+.admin-stat strong{display:block;margin-top:10px;color:#313A46;font:700 1.7rem var(--fb)}
+.admin-stat small{display:block;margin-top:3px;color:#98A6B3}
+.admin-card{background:#fff;border:1px solid #EEF0F4;border-radius:5px;box-shadow:0 2px 6px rgba(49,58,70,.045)}
+.admin-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #EEF0F4}
+.admin-card-head h3{color:#6C757D;font:800 .76rem var(--fb);letter-spacing:.08em}
+.admin-card-body{padding:18px 20px}
+.admin-table-wrap{overflow-x:auto}
+.admin-table{width:100%;border-collapse:collapse;text-align:left}
+.admin-table th{padding:11px 13px;color:#98A6B3;font-size:.69rem;letter-spacing:.06em;text-transform:uppercase;background:#FAFBFE}
+.admin-table td{padding:13px;border-top:1px solid #EEF0F4;color:#6C757D;vertical-align:middle}
+.admin-table td:first-child{min-width:210px}
+.admin-user-cell{display:flex;align-items:center;gap:10px}
+.admin-user-cell strong,.admin-user-cell small{display:block}
+.admin-user-cell strong{color:#313A46}
+.admin-user-cell small{color:#98A6B3;overflow-wrap:anywhere}
+.admin-user-avatar{width:34px;height:34px;display:grid;place-items:center;flex:none;border-radius:50%;background:#EEF0FF;color:#727CF5;font-weight:800}
+.admin-badge{display:inline-flex;padding:3px 9px;border-radius:999px;background:#E7F9F3;color:#0ACF97;font-size:.72rem;font-weight:700}
+.admin-badge.staff{background:#F1F2F7;color:#6C757D}
+.admin-row-actions{display:flex;justify-content:flex-end;gap:5px}
+.admin-row-actions .admin-icon-button{width:32px;height:32px;border:1px solid #EEF0F4}
+.admin-empty{padding:34px 18px;text-align:center;color:#98A6B3}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.admin-backdrop{display:none}
+.admin-toast{z-index:60}
+body.admin-mode.admin-dark,.admin-dark .admin-shell{background:#222D3C;color:#CBD0D8}
+body.admin-mode.admin-dark .admin-topbar,.admin-dark .admin-card,.admin-dark .admin-stat{background:#313A46;border-color:#414B59;color:#CBD0D8}
+body.admin-mode.admin-dark .admin-page-head h2,.admin-dark .admin-stat strong,.admin-dark .admin-user-cell strong{color:#F1F3F5}
+body.admin-mode.admin-dark .admin-card-head,.admin-dark .admin-table td,.admin-dark .admin-table th{border-color:#414B59}
+body.admin-mode.admin-dark .admin-table th{background:#2B3543;color:#AAB2BF}
+body.admin-mode.admin-dark .admin-table td,.admin-dark .admin-page-head p,.admin-dark .admin-stat small{color:#AAB2BF}
+body.admin-mode.admin-dark .admin-search input{background:#222D3C;border-color:#414B59;color:#F1F3F5}
+body.admin-mode.admin-dark .admin-secondary,.admin-dark .admin-row-actions .admin-icon-button{background:#2B3543;border-color:#414B59;color:#CBD0D8}
+body.admin-mode.admin-dark .admin-user-avatar,.admin-dark .admin-stat-icon{background:#414466;color:#B2B8FF}
+body.admin-mode.admin-dark #toast{bottom:24px}
+@media(max-width:900px){
+  .admin-shell{grid-template-columns:76px minmax(0,1fr)}
+  .admin-sidebar{padding:20px 10px}
+  .admin-logo{justify-content:center;padding:0}
+  .admin-logo-word,.admin-nav-label,.admin-nav-text,.admin-nav-badge{display:none}
+  .admin-nav button{justify-content:center;padding:0}
+  .admin-nav svg{width:20px;height:20px}
+  .admin-sidebar-footer button{font-size:0}
+  .admin-sidebar-footer button svg{font-size:initial}
+  .admin-sidebar-footer>button{justify-content:center;padding:0}
+}
+@media(max-width:640px){
+  .admin-shell{display:block;overflow:auto}
+  .admin-sidebar{position:fixed;z-index:6;left:0;top:0;width:250px;transform:translateX(-102%);transition:transform .2s ease;box-shadow:8px 0 28px rgba(28,35,45,.2)}
+  .admin-shell.drawer-open .admin-sidebar{transform:translateX(0)}
+  .admin-shell.drawer-open .admin-backdrop{position:fixed;display:block;z-index:5;inset:0;background:rgba(22,29,39,.4)}
+  .admin-logo{justify-content:flex-start;padding:0 10px}
+  .admin-logo-word,.admin-nav-label,.admin-nav-text,.admin-nav-badge{display:initial}
+  .admin-nav button{justify-content:flex-start;padding:0 11px}
+  .admin-nav svg{width:18px;height:18px}
+  .admin-sidebar-footer button{font-size:inherit}
+  .admin-sidebar-footer>button{justify-content:flex-start;padding:0 11px}
+  .admin-topbar{min-height:60px;padding:8px 12px;gap:8px}
+  .admin-search{max-width:none}
+  .admin-profile-copy,.admin-topbar .optional-action{display:none}
+  .admin-content{padding:20px 14px 28px}
+  .admin-stat-grid{grid-template-columns:1fr;gap:10px}
+  .admin-stat{padding:14px 16px}
+  .admin-stat strong{font-size:1.4rem}
+  .admin-card-head,.admin-card-body{padding:14px}
+  .admin-table{min-width:690px}
+  .admin-form-grid{grid-template-columns:1fr}
+  .admin-form-grid .span-all{grid-column:auto}
+}
 
 /* utang */
 .debtor{background:#fff;border:1.5px solid var(--line);border-radius:var(--r);padding:14px;margin-top:12px}
@@ -269,9 +393,11 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
 @media (min-width:900px){
   body{padding-bottom:40px}
   .top{padding:14px 28px}
-  .tabs{position:static;height:auto;padding:0;border:0;background:none;display:flex;gap:6px}
-  .tabs button{flex-direction:row;gap:8px;padding:0 16px;min-height:44px;border-radius:12px;font-size:.98rem}
+  .top{flex-wrap:wrap}
+  .tabs{position:static;flex:1;justify-content:center;flex-wrap:wrap;height:auto;padding:0;border:0;background:none;display:flex;gap:6px}
+  .tabs button{flex-direction:row;gap:8px;padding:0 12px;min-height:44px;border-radius:12px;font-size:.98rem}
   .tabs button[aria-current="page"]{background:var(--accent);color:#fff}
+  .top .admin-entry{margin-left:auto}
   .sell{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,380px);gap:20px;align-items:start}
   .cart{position:sticky;top:16px;transform:none;max-height:calc(100dvh - 32px);border-radius:var(--r);border:1.5px solid var(--line);box-shadow:none;z-index:1}
   .scrim,.cartbar,.mobile-only{display:none!important}
@@ -305,6 +431,10 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   <form class="login-card" id="loginForm" novalidate>
     <h2 id="loginHeading">Log in</h2>
     <p class="login-intro"><span id="loginSub">Need an account?</span> <button class="login-mode-link" type="button" data-goto="signup" data-modes="signin">Create an account</button><button class="login-mode-link" type="button" data-goto="signin" data-modes="signup">Log in</button></p>
+    <div class="login-field" data-modes="signup" hidden><label for="l-first-name">First name</label>
+    <input class="login-input" id="l-first-name" type="text" maxlength="60" autocomplete="given-name"></div>
+    <div class="login-field" data-modes="signup" hidden><label for="l-last-name">Last name</label>
+    <input class="login-input" id="l-last-name" type="text" maxlength="60" autocomplete="family-name"></div>
     <div data-modes="signin signup forgot">
       <div class="login-field"><label for="l-email">Email</label>
       <input class="login-input" id="l-email" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"></div>
@@ -339,11 +469,9 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   </div>
   <nav class="tabs" id="tabs" aria-label="Main">
     <button data-tab="sell" aria-current="page"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Sell</button>
-    <button data-tab="dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>Dashboard</button>
-    <button data-tab="products"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>Products</button>
-    <button data-tab="utang"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Utang</button>
-    <button data-tab="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
   </nav>
+  <button class="btn outline small" id="enableUtangPush" type="button" hidden>Enable bill reminders</button>
+  <button class="btn small admin-entry" data-tab="admin" id="openAdminDashboard" hidden>Admin Dashboard</button>
   <button class="btn small logout" data-act="logout">Log out</button>
 </header>
 
@@ -374,19 +502,25 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
       </div>
       <div class="lines" id="lines"></div>
       <div class="total-row"><span>Total</span><strong id="total">₱0</strong></div>
-      <label for="cash">Cash received</label>
-      <input id="cash" inputmode="decimal" placeholder="Leave blank for exact amount" autocomplete="off">
-      <div class="quick" id="quick">
-        <button data-quick="exact">Exact</button><button data-quick="20">20</button><button data-quick="50">50</button>
-        <button data-quick="100">100</button><button data-quick="500">500</button><button data-quick="1000">1000</button>
+      <div id="staffPayment">
+        <label for="cash">Cash received</label>
+        <input id="cash" inputmode="decimal" placeholder="Leave blank for exact amount" autocomplete="off">
+        <div class="quick" id="quick">
+          <button data-quick="exact">Exact</button><button data-quick="20">20</button><button data-quick="50">50</button>
+          <button data-quick="100">100</button><button data-quick="500">500</button><button data-quick="1000">1000</button>
+        </div>
+        <div class="change-row"><span id="changeLabel">Change</span><strong id="change">₱0</strong></div>
+        <label for="customer">Customer name (required for utang)</label>
+        <input id="customer" list="custlist" autocomplete="off" placeholder="Optional">
+        <datalist id="custlist"></datalist>
+        <div class="pay-actions">
+          <button class="btn secondary" id="btnUtang">Utang</button>
+          <button class="btn primary" id="btnCharge">Charge</button>
+        </div>
       </div>
-      <div class="change-row"><span id="changeLabel">Change</span><strong id="change">₱0</strong></div>
-      <label for="customer">Customer name (required for utang)</label>
-      <input id="customer" list="custlist" autocomplete="off" placeholder="Optional">
-      <datalist id="custlist"></datalist>
-      <div class="pay-actions">
-        <button class="btn secondary" id="btnUtang">Utang</button>
-        <button class="btn primary" id="btnCharge">Charge</button>
+      <div class="customer-order-actions" id="customerOrderActions" hidden>
+        <button class="btn primary customer-order-button" data-order-payment="cash" disabled>Place order · Cash</button>
+        <button class="btn secondary customer-order-button" data-order-payment="utang" disabled>Utang</button>
       </div>
       <div class="clear-wrap"><button class="link" id="btnClear">Clear sale</button></div>
     </aside>
@@ -444,7 +578,67 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
         <button class="btn outline small" data-act="exportSales">Export sales (CSV)</button>
         <button class="btn outline small" data-act="backup">Download backup</button>
         <button class="btn outline small" data-act="restore">Restore backup</button>
+        <button class="btn primary small" data-tab="users" id="openUserAdmin" hidden>Manage users</button>
         <button class="btn danger small" data-act="wipe">Erase all data</button>
+      </div>
+    </div>
+  </section>
+  <!-- USER MANAGEMENT -->
+  <section id="adminShell" class="admin-shell" hidden>
+    <aside class="admin-sidebar" aria-label="Admin navigation">
+      <div class="admin-logo"><span class="admin-logo-mark">V</span><span class="admin-logo-word">VANE ADMIN</span></div>
+      <div><p class="admin-nav-label">ADMINISTRATION</p>
+        <nav class="admin-nav">
+          <button class="active" data-tab="admin"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg><span class="admin-nav-text">Admin dashboard</span></button>
+          <button data-tab="products"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg><span class="admin-nav-text">Products</span></button>
+          <button data-tab="utang"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="admin-nav-text">Utang</span></button>
+          <button data-tab="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="admin-nav-text">Reports</span></button>
+          <button data-tab="orders" id="adminOrdersLink" hidden><svg viewBox="0 0 24 24"><path d="M5 4h14l1 16H4L5 4Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span class="admin-nav-text">Orders</span><span id="adminOrderCount" class="admin-nav-badge"></span></button>
+          <button data-tab="users" id="adminUsersLink" hidden><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="admin-nav-text">Users</span><span id="adminUserCount" class="admin-nav-badge"></span></button>
+        </nav>
+      </div>
+      <div class="admin-sidebar-footer"><button data-tab="sell" aria-label="Back to POS"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6M9 12h12"/><path d="M3 4v16"/></svg><span class="admin-nav-text">Back to POS</span></button></div>
+    </aside>
+    <button class="admin-backdrop" data-act="adminMenuClose" aria-label="Close admin menu" tabindex="-1"></button>
+    <div class="admin-workspace">
+      <header class="admin-topbar">
+        <button class="admin-icon-button" data-act="adminMenu" aria-label="Toggle admin menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <form class="admin-search" id="adminSearchForm" role="search">
+          <input id="adminSearch" type="search" placeholder="Search users…" autocomplete="off" aria-label="Search users">
+          <button type="submit">Search</button>
+        </form>
+        <button class="admin-icon-button" data-act="toggleAdminTheme" id="adminThemeToggle" aria-label="Switch to dark mode" aria-pressed="false" title="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z"/></svg></button>
+        <div class="admin-profile"><span class="admin-avatar" id="adminAvatar">A</span><span class="admin-profile-copy"><strong id="adminProfileName">Administrator</strong><small>Store admin</small></span></div>
+        <button class="btn admin-secondary small" data-act="logout">Log out</button>
+      </header>
+      <div class="admin-content">
+        <section id="adminOverview" class="admin-page-view">
+          <div class="admin-page-head"><div><h2>Admin overview</h2><p>Account access and user activity at a glance.</p></div>
+            <div class="admin-page-actions"><button class="btn admin-secondary small" data-act="refreshUsers">Refresh</button><button class="btn admin-primary small" data-tab="users">View users</button></div></div>
+          <div class="admin-stat-grid" data-admin-only>
+            <article class="admin-stat"><div class="admin-stat-label">Total accounts <span class="admin-stat-icon">♙</span></div><strong id="adminTotalUsers">—</strong><small>Registered store users</small></article>
+            <article class="admin-stat"><div class="admin-stat-label">Active this month <span class="admin-stat-icon">◷</span></div><strong id="adminActiveUsers">—</strong><small>Signed in within the last 30 days</small></article>
+            <article class="admin-stat"><div class="admin-stat-label">Administrators <span class="admin-stat-icon">◇</span></div><strong id="adminAdmins">—</strong><small>Accounts in the admin allowlist</small></article>
+          </div>
+          <article class="admin-card" data-admin-only><header class="admin-card-head"><h3>RECENT ACCOUNTS</h3><button class="btn admin-secondary small" data-tab="users">Manage users</button></header>
+            <div id="adminRecentUsers" class="admin-table-wrap"></div></article>
+        </section>
+        <section id="adminAccounts" class="admin-page-view" hidden>
+          <div class="admin-page-head"><div><h2>Users</h2><p>View and manage customer and administrator accounts.</p></div>
+            <div class="admin-page-actions"><button class="btn admin-secondary small" data-act="refreshUsers">Refresh list</button></div></div>
+          <div class="admin-page-head"><div><h2>Users</h2><p>Manage customer and administrator accounts.</p></div>
+            <div class="admin-page-actions"><button class="btn admin-primary small" data-act="addUser"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M12 5v14M5 12h14"/></svg>Add user</button></div></div>
+          <article class="admin-card"><header class="admin-card-head"><h3>ALL USERS</h3><span id="usersStatus" role="status" aria-live="polite">Loading users…</span></header>
+            <div id="usersList" class="admin-table-wrap"></div></article>
+          <p class="meta" style="margin-top:12px">Create accounts from Supabase Authentication. Password resets set a temporary password; share it securely.</p>
+        </section>
+        <section id="adminOrders" class="admin-page-view" hidden>
+          <div class="admin-page-head"><div><h2>Customer orders</h2><p>Confirm cash orders or record utang orders. Confirming updates sales and stock.</p></div>
+            <div class="admin-page-actions"><button class="btn admin-secondary small" data-act="refreshOrders">Refresh orders</button></div></div>
+          <article class="admin-card"><header class="admin-card-head"><h3>ORDER REQUESTS</h3><span id="ordersStatus" role="status" aria-live="polite">Loading orders…</span></header>
+            <div id="adminOrderList" class="admin-table-wrap"></div></article>
+        </section>
+        <div id="adminModules"></div>
       </div>
     </div>
   </section>
@@ -511,10 +705,11 @@ function save() {
   catch (e) { toast('Could not save. Storage is full or blocked in this browser.', 'bad'); }
   queueSync();
 }
-let cart = {};
+let cart = {}, customerCatalog = [], customerCatalogReady = false, customerCatalogError = '';
 const ui = {tab: 'sell', cat: 'All', q: '', pf: 'all', pq: '', uq: '', range: 'today'};
-const prod = id => S.products.find(p => p.id === id);
-const cats = () => [...new Set(S.products.map(p => p.category || 'Others'))].sort((a, b) => a.localeCompare(b));
+const productsForSale = () => isCustomerOrderMode() ? customerCatalog : S.products;
+const prod = id => productsForSale().find(p => p.id === id);
+const cats = () => [...new Set(productsForSale().map(p => p.category || 'Others'))].sort((a, b) => a.localeCompare(b));
 const isLow = p => (+p.stock || 0) < (+p.low || 0);
 const mergeAuditEvents = (...lists) => [...new Map(lists.flat().filter(Boolean).map(e => [e.id, e])).values()];
 const mergeById = (local, remote) => [...new Map([...remote, ...local].map(row => [row.id, row])).values()];
@@ -561,15 +756,35 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 /* ---------- tabs ---------- */
 function setTab(t) {
+  if (t !== 'sell' && !canOpenAdminDashboard()) { toast('The admin dashboard is available only to administrator accounts.', 'bad'); return; }
+  if (!['sell', 'admin', 'dashboard', 'products', 'utang', 'reports', 'orders', 'users'].includes(t)) return;
   ui.tab = t;
-  $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + t; });
+  const inAdmin = t !== 'sell';
+  $('#view-sell').hidden = inAdmin;
+  $('#adminShell').hidden = !inAdmin;
+  const activeView = t === 'admin' ? 'dashboard' : t;
+  $$('#adminModules .view').forEach(v => { v.hidden = v.id !== 'view-' + activeView; });
+  document.body.classList.toggle('admin-mode', inAdmin);
+  if (inAdmin) updateAdminTheme();
+  else document.body.classList.remove('admin-dark');
+  $('.top').hidden = inAdmin;
+  $('#adminSearchForm').hidden = t !== 'users';
+  $('#adminAccounts').hidden = t !== 'users';
+  $('#adminOrders').hidden = t !== 'orders';
+  $('#adminOverview').hidden = t !== 'admin' || !userAdmin;
+  $$('.admin-nav [data-tab]').forEach(button => button.classList.toggle('active', button.dataset.tab === t));
+  $('#adminShell').classList.remove('drawer-open');
+  $('[data-act="adminMenu"]').setAttribute('aria-expanded', 'false');
   $$('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   closeCart();
   if (t === 'sell') { renderCats(); renderGrid(); renderCart(); }
-  if (t === 'dashboard') renderDashboard();
+  if (t === 'dashboard' || t === 'admin') renderDashboard();
   if (t === 'products') renderProducts();
   if (t === 'utang') renderUtang();
   if (t === 'reports') renderReports();
+  if (t === 'admin' && userAdmin) loadUsers();
+  if (t === 'users') loadUsers();
+  if (t === 'orders') loadOrders();
   window.scrollTo(0, 0);
 }
 
@@ -583,6 +798,9 @@ function renderHeader() {
   const d = new Date(); d.setHours(0, 0, 0, 0);
   const today = S.sales.filter(s => s.ts >= +d && !isVoided(s));
   $('#todayLine').textContent = `Today: ${money(today.reduce((a, s) => a + s.total, 0))} from ${today.length} sale${today.length === 1 ? '' : 's'}`;
+  const adminName = user && user.email ? user.email.split('@')[0] : 'Administrator';
+  $('#adminProfileName').textContent = adminName;
+  $('#adminAvatar').textContent = adminName.slice(0, 1).toUpperCase();
 }
 
 function renderDashboard() {
@@ -628,16 +846,25 @@ function renderCats() {
 }
 function renderGrid() {
   const q = ui.q.trim().toLowerCase();
-  const items = S.products
+  const products = productsForSale();
+  if (isCustomerOrderMode() && !customerCatalogReady) {
+    $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>${customerCatalogError ? 'Products unavailable' : 'Loading products…'}</strong>${esc(customerCatalogError || 'Please wait while the store catalog loads.')}</div>`;
+    return;
+  }
+  if (isCustomerOrderMode() && customerCatalogError) {
+    $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>Products unavailable</strong>${esc(customerCatalogError)}<button class="btn secondary small" data-act="refreshCatalog" style="margin:12px auto 0">Try again</button></div>`;
+    return;
+  }
+  const items = products
     .filter(p => (ui.cat === 'All' || (p.category || 'Others') === ui.cat) && (!q || p.name.toLowerCase().includes(q)))
     .sort((a, b) => a.name.localeCompare(b.name));
-  if (!S.products.length) {
-    $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>No products yet</strong>Add items in Products, or import your Excel list.</div>`; return;
+  if (!products.length) {
+    $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>${isCustomerOrderMode() ? 'No products available' : 'No products yet'}</strong>${isCustomerOrderMode() ? 'The store has no available products right now.' : 'Add items in Products, or import your Excel list.'}</div>`; return;
   }
   if (!items.length) { $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><strong>No match</strong>Try another name or category.</div>`; return; }
   $('#grid').innerHTML = items.map(p => {
     const st = +p.stock || 0, q = cart[p.id] || 0;
-    return `<button class="tile ${st <= 0 ? 'out' : ''}" data-add="${p.id}">
+    return `<button class="tile ${st <= 0 ? 'out' : ''}" data-add="${p.id}" ${isCustomerOrderMode() && st <= 0 ? 'disabled' : ''}>
       <span class="t-name">${esc(p.name)}</span>
       <span class="t-price">${money(p.price)}</span>
       <span class="t-stock ${isLow(p) ? 'low' : ''}">${st <= 0 ? 'Out of stock' : st + ' left'}</span>
@@ -650,14 +877,23 @@ const cartCount = () => cartLines().reduce((a, {q}) => a + q, 0);
 
 function renderCart() {
   const lines = cartLines(), t = cartTotal();
+  const customerMode = isCustomerOrderMode();
+  $('.cart-head h2').textContent = customerMode ? 'Your order' : 'Current sale';
   $('#lines').innerHTML = lines.length ? lines.map(({p, q}) => `<div class="line">
       <div class="l-name">${esc(p.name)}<small>${money(p.price)} each</small></div>
       <div class="stepper"><button data-dec="${p.id}" aria-label="Remove one ${esc(p.name)}">−</button><span>${q}</span><button data-inc="${p.id}" aria-label="Add one ${esc(p.name)}">+</button></div>
       <div class="l-amt">${money(p.price * q)}</div></div>`).join('')
     : `<div class="empty" style="margin:8px 0">Tap an item to start a sale.</div>`;
+  $('.total-row span').textContent = customerMode ? 'Your order total' : 'Total';
   $('#total').textContent = money(t);
   $('#btnCharge').disabled = !lines.length; $('#btnUtang').disabled = !lines.length;
   $('#btnCharge').textContent = t ? `Charge ${money(t)}` : 'Charge';
+  $('#staffPayment').hidden = customerMode;
+  $('#customerOrderActions').hidden = !customerMode;
+  $$('[data-order-payment]').forEach(button => {
+    button.disabled = !lines.length || !customerCatalogReady || !navigator.onLine;
+    button.textContent = `${button.dataset.orderPayment === 'cash' ? 'Place order · Cash' : 'Utang'}${t ? ` · ${money(t)}` : ''}`;
+  });
   const n = cartCount();
   $('#cbCount').textContent = `${n} item${n === 1 ? '' : 's'}`; $('#cbTotal').textContent = money(t);
   $('#cartbar').hidden = !(n && ui.tab === 'sell');
@@ -676,13 +912,21 @@ function updateBadge(id) {
   const el = $(`[data-add="${id}"] .t-badge`); if (!el) return;
   const q = cart[id] || 0; el.textContent = q; el.hidden = !q;
 }
-function addToCart(id) { if (!prod(id)) return; cart[id] = (cart[id] || 0) + 1; updateBadge(id); renderCart(); }
+function addToCart(id) {
+  const product = prod(id);
+  if (!product) return;
+  if (isCustomerOrderMode() && (cart[id] || 0) >= (+product.stock || 0)) {
+    toast('There is not enough stock available for this product.', 'bad'); return;
+  }
+  cart[id] = (cart[id] || 0) + 1; updateBadge(id); renderCart();
+}
 function decFromCart(id) { if (!cart[id]) return; cart[id]--; if (cart[id] <= 0) delete cart[id]; updateBadge(id); renderCart(); if (!cartCount()) closeCart(); }
 function clearCart() { const ids = Object.keys(cart); cart = {}; ids.forEach(updateBadge); $('#cash').value = ''; $('#customer').value = ''; renderCart(); closeCart(); }
 function openCart() { $('#cart').classList.add('open'); $('#scrim').hidden = false; $('#toast').hidden = true; }
 function closeCart() { $('#cart').classList.remove('open'); $('#scrim').hidden = true; }
 
 function checkout(mode) {
+  if (isCustomerOrderMode()) { toast('Customers must place an order request.', 'bad'); return; }
   const lines = cartLines(); if (!lines.length) return;
   const t = cartTotal(), customer = $('#customer').value.trim();
   let cash = parseFloat($('#cash').value);
@@ -707,6 +951,36 @@ function checkout(mode) {
       ${mode === 'cash' ? `<div><span>Cash received</span><span>${money(sale.cash)}</span></div>` : ''}</div>
     ${mode === 'cash' ? `<div class="rcpt-change"><span class="meta">Change</span><strong>${money(sale.change)}</strong></div>` : `<p class="meta">Added to ${esc(customer)}'s unpaid balance.</p>`}
     <div class="dlg-actions"><button class="btn primary" data-act="closeDlg" style="flex:1">New sale</button></div>`);
+}
+async function submitCustomerOrder(paymentMethod) {
+  const lines = cartLines();
+  if (!isCustomerOrderMode() || !lines.length || !['cash', 'utang'].includes(paymentMethod)) return;
+  const buttons = $$('[data-order-payment]');
+  buttons.forEach(button => { button.disabled = true; });
+  const activeButton = $(`[data-order-payment="${paymentMethod}"]`);
+  activeButton.textContent = 'Submitting…';
+  try {
+    const result = await callCustomerOrders({
+      action: 'place_order',
+      paymentMethod,
+      items: lines.map(({p, q}) => ({productId: String(p.id), quantity: q, unitPrice: p.price}))
+    });
+    if (!user) return;
+    const orderItems = Array.isArray(result.items) ? result.items : [];
+    dlg.close();
+    clearCart(); renderGrid();
+    const paymentMessage = paymentMethod === 'utang'
+      ? 'Kung ma-confirm sa tindahan ang imong Utang order, bayaran kini kada ika-15 ug ika-30 sa bulan. Magpakita og pahinumdom diri sa app kung naa pay wala mabayri.'
+      : 'I-review pa sa tindahan ang imong order. Walay bayad o stock change hangtod ma-confirm kini.';
+    openDlg(`<h2>Salamat sa pagpalit!</h2><p class="meta">Na-submit na ang imong ${paymentMethod === 'cash' ? 'Cash' : 'Utang'} order. ${paymentMessage}</p>
+      <div class="rcpt">${orderItems.map(i => `<div><span>${Number(i.quantity)} × ${esc(i.name)}</span><b>${money(Number(i.price) * Number(i.quantity))}</b></div>`).join('')}
+        <div style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><b>Your total</b><b>${money(Number(result.total))}</b></div></div>
+      <div class="dlg-actions"><button class="btn primary" data-act="closeDlg" style="flex:1">Continue shopping</button></div>`);
+  } catch (err) {
+    toast(err.message || 'Could not submit your order. Please try again.', 'bad');
+  } finally {
+    renderCart();
+  }
 }
 
 /* ---------- PRODUCTS ---------- */
@@ -972,7 +1246,7 @@ function renderReports() {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-act]');
+  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-user-edit],[data-user-reset],[data-user-delete],[data-order-id],[data-order-payment],[data-act]');
   if (!t) return;
   const d = t.dataset;
   if (d.add) return addToCart(d.add);
@@ -993,6 +1267,19 @@ document.addEventListener('click', async e => {
   if (d.void) {
     openVoidSale(d.void); return;
   }
+  if (d.userEdit) return openUserEdit(d.userEdit);
+  if (d.userReset) return openUserPasswordReset(d.userReset);
+  if (d.orderId) return reviewCustomerOrder(d.orderId, d.orderStatus);
+  if (d.orderPayment) return submitCustomerOrder(d.orderPayment);
+  if (d.userDelete) {
+    const target = managedUsers.find(u => u.id === d.userDelete); if (!target || target.id === user.id) return;
+    if (!await askConfirm({title: 'Delete user account?', message: `Permanently delete ${target.email || 'this account'}? This cannot be undone.`, confirmText: 'Delete user', danger: true})) return;
+    try {
+      await callUserAdmin({action: 'delete', userId: target.id});
+      toast('User account deleted'); await loadUsers();
+    } catch (err) { toast(err.message || 'Could not delete user.', 'bad'); }
+    return;
+  }
   if (d.del) {
     const p = prod(d.del); if (!p) return;
     if (!await askConfirm({title: 'Delete product?', message: `Delete "${p.name}"? Past sales are kept.`, confirmText: 'Delete product', danger: true})) return;
@@ -1002,10 +1289,31 @@ document.addEventListener('click', async e => {
   }
   switch (d.act) {
     case 'logout': logout(); break;
+    case 'addUser': openUserCreate(); break;
     case 'closeDlg': dlg.close(); break;
     case 'confirmCancel': finishConfirm(false); break;
     case 'confirmOk': finishConfirm(true); break;
     case 'closeCart': closeCart(); break;
+    case 'refreshUsers': loadUsers(); break;
+    case 'refreshOrders': loadOrders(); break;
+    case 'refreshCatalog': loadCustomerCatalog(); break;
+    case 'adminMenu': {
+      const shell = $('#adminShell'), open = !shell.classList.contains('drawer-open');
+      shell.classList.toggle('drawer-open', open);
+      $('[data-act="adminMenu"]').setAttribute('aria-expanded', String(open));
+      break;
+    }
+    case 'adminMenuClose':
+      $('#adminShell').classList.remove('drawer-open');
+      $('[data-act="adminMenu"]').setAttribute('aria-expanded', 'false');
+      break;
+    case 'toggleAdminTheme': {
+      const dark = !document.body.classList.contains('admin-dark');
+      updateAdminTheme(dark);
+      try { localStorage.setItem('vane-pos-admin-dark', String(dark)); }
+      catch (err) { console.warn('Could not save admin theme preference:', err); }
+      break;
+    }
     case 'addProduct': openProduct(); break;
     case 'import': $('#importFile').click(); break;
     case 'exportProducts':
@@ -1027,6 +1335,8 @@ document.addEventListener('click', async e => {
 $('#q').addEventListener('input', e => { ui.q = e.target.value; renderGrid(); });
 $('#pq').addEventListener('input', e => { ui.pq = e.target.value; renderProducts(); });
 $('#uq').addEventListener('input', e => { ui.uq = e.target.value; renderUtang(); });
+$('#adminSearch').addEventListener('input', renderUsers);
+$('#adminSearchForm').addEventListener('submit', e => { e.preventDefault(); renderUsers(); });
 $('#cash').addEventListener('input', updatePay);
 $('#btnCharge').addEventListener('click', () => checkout('cash'));
 $('#btnUtang').addEventListener('click', () => checkout('utang'));
@@ -1064,9 +1374,440 @@ const authStorage = {
 keepLoggedIn.addEventListener('change', () => {
   try { localStorage.setItem(KEEP_LOGIN_KEY, String(keepLoggedIn.checked)); } catch (e) {}
 });
-let sb = null, user = null;
+let sb = null, user = null, userAdmin = false, managedUsers = [], customerOrders = [];
+let customerUnpaidUtangs = [], lastCustomerUtangCheckDate = '', lastCustomerUtangReminderKey = '';
+const PUSH_PUBLIC_KEY = 'BP2OAdL3tY4FqsmgAVby90qjezAzFPOM2uuKqLyE5603AbEbmmjS_mp7YodV4-CYIUeG1vmecaOqOFWTF0_fjVo';
 const cfgUrl = () => String(window.SUPABASE_URL || '').trim();
 const cfgKey = () => String(window.SUPABASE_KEY || '').trim();
+const USER_ADMIN_URL = () => cfgUrl().replace(/\/+$/, '') + '/functions/v1/manage-users';
+const CUSTOMER_ORDERS_URL = () => cfgUrl().replace(/\/+$/, '') + '/functions/v1/customer-orders';
+function isKnownAdminAccount() {
+  return String(user && user.email || '').trim().toLowerCase() === 'vanessalumawag404@gmail.com'
+    || user?.app_metadata?.role === 'admin';
+}
+function canOpenAdminDashboard() { return userAdmin || isKnownAdminAccount(); }
+function isCustomerOrderMode() { return !!user && !canOpenAdminDashboard(); }
+function canOpenUserManagement() { return canOpenAdminDashboard(); }
+function setUserAdmin(value) {
+  userAdmin = !!value;
+  const canOpenDashboard = canOpenAdminDashboard();
+  $('#enableUtangPush').hidden = !isCustomerOrderMode();
+  if (isCustomerOrderMode()) refreshUtangPushButton();
+  $('#openAdminDashboard').hidden = !canOpenDashboard;
+  $('#openUserAdmin').hidden = !canOpenDashboard;
+  $('#adminOrdersLink').hidden = !canOpenDashboard;
+  $('#adminUsersLink').hidden = !canOpenDashboard;
+  $$('[data-admin-only]').forEach(el => { el.hidden = !userAdmin; });
+  if (!canOpenDashboard && ui.tab !== 'sell') setTab('sell');
+  renderCats(); renderGrid(); renderCart();
+}
+function updateAdminTheme(enabled) {
+  let dark = enabled;
+  if (typeof dark !== 'boolean') {
+    try { dark = localStorage.getItem('vane-pos-admin-dark') === 'true'; }
+    catch (err) { console.warn('Could not read admin theme preference:', err); dark = false; }
+  }
+  document.body.classList.toggle('admin-dark', dark);
+  const button = $('#adminThemeToggle');
+  button.setAttribute('aria-pressed', String(dark));
+  button.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+}
+async function callUserAdmin(body) {
+  if (!sb || !user) throw new Error('Please sign in again to manage users.');
+  const {data, error} = await sb.auth.getSession();
+  if (error) throw error;
+  const token = data.session && data.session.access_token;
+  if (!token) throw new Error('Your session expired. Please sign in again.');
+  const response = await fetch(USER_ADMIN_URL(), {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'apikey': cfgKey(), 'Authorization': `Bearer ${token}`},
+    body: JSON.stringify(body)
+  });
+  let result = {};
+  try { result = await response.json(); } catch (e) {}
+  if (response.status === 404) {
+    throw new Error('The manage-users Edge Function is not deployed to the Supabase project configured in config.js. From this project folder, run: supabase functions deploy manage-users');
+  }
+  if (!response.ok) throw new Error(result.error || `User management request failed (${response.status}).`);
+  return result;
+}
+async function callCustomerOrders(body) {
+  if (!sb || !user) throw new Error('Please sign in to place an order.');
+  const {data, error} = await sb.auth.getSession();
+  if (error) throw error;
+  const token = data.session && data.session.access_token;
+  if (!token) throw new Error('Your session expired. Please sign in again.');
+  const response = await fetch(CUSTOMER_ORDERS_URL(), {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'apikey': cfgKey(), 'Authorization': `Bearer ${token}`},
+    body: JSON.stringify(body)
+  });
+  let result = {};
+  try { result = await response.json(); } catch (e) {}
+  if (!response.ok) throw new Error(result.error || `Order request failed (${response.status}).`);
+  return result;
+}
+function vapidKeyBytes(key) {
+  const padding = '='.repeat((4 - key.length % 4) % 4);
+  const base64 = (key + padding).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+}
+function refreshUtangPushButton() {
+  const button = $('#enableUtangPush');
+  if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
+  if (Notification.permission === 'denied') {
+    button.textContent = 'Allow reminders in browser settings';
+    return;
+  }
+  navigator.serviceWorker.ready.then(registration => registration.pushManager.getSubscription()).then(subscription => {
+    if (subscription && isCustomerOrderMode()) button.textContent = 'Bill reminders enabled';
+  }).catch(err => console.warn('Could not check push reminder status:', err));
+}
+async function enableCustomerUtangPush() {
+  const button = $('#enableUtangPush');
+  if (!isCustomerOrderMode() || !user) return;
+  if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) {
+    toast('Push notifications are not supported in this browser. Try installing the app from Chrome.', 'bad');
+    return;
+  }
+  if (!window.isSecureContext) {
+    toast('Push reminders need the secure HTTPS store link.', 'bad');
+    return;
+  }
+  button.disabled = true;
+  const originalText = button.textContent;
+  button.textContent = 'Enabling…';
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      throw new Error(permission === 'denied'
+        ? 'Notifications are blocked in browser settings. Allow them for this store, then try again.'
+        : 'Allow notifications to receive bill reminders.');
+    }
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidKeyBytes(PUSH_PUBLIC_KEY)
+      });
+    }
+    await callCustomerOrders({action: 'save_push_subscription', subscription: subscription.toJSON()});
+    button.textContent = 'Bill reminders enabled';
+    toast('Bill reminders enabled on this device.');
+  } catch (err) {
+    button.textContent = originalText;
+    toast(err.message || 'Could not enable bill reminders.', 'bad');
+    console.warn('Push notification setup failed:', err);
+  } finally {
+    button.disabled = false;
+  }
+}
+$('#enableUtangPush').addEventListener('click', enableCustomerUtangPush);
+async function loadCustomerCatalog() {
+  const id = user && user.id;
+  if (!id || !isCustomerOrderMode()) return;
+  customerCatalogReady = false; customerCatalogError = ''; renderGrid(); renderCart();
+  try {
+    const result = await callCustomerOrders({action: 'catalog'});
+    if (!user || user.id !== id || !isCustomerOrderMode()) return;
+    customerCatalog = Array.isArray(result.products) ? result.products.map(p => ({
+      id: String(p.id), name: String(p.name), category: String(p.category || 'Others'),
+      price: Number(p.price), stock: Number(p.stock), cost: 0, low: 0
+    })) : [];
+    customerCatalogReady = true;
+    renderCats(); renderGrid(); renderCart();
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    customerCatalogError = err.message || 'Could not load products. Check your connection and try again.';
+    customerCatalogReady = true;
+    renderGrid(); renderCart();
+    console.warn('Customer catalog load failed:', err);
+  }
+}
+function philippinesDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(date);
+  return Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+}
+function philippinesDateKey() {
+  const {year, month, day} = philippinesDateParts();
+  return `${year}-${month}-${day}`;
+}
+function customerUtangReminderPeriod(now = new Date()) {
+  const parts = philippinesDateParts(now);
+  const year = Number(parts.year), month = Number(parts.month), day = Number(parts.day);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const checkpointDay = day >= Math.min(30, daysInMonth) ? Math.min(30, daysInMonth) : day >= 15 ? 15 : 0;
+  if (!checkpointDay) return null;
+  const pad = value => String(value).padStart(2, '0');
+  const date = `${parts.year}-${parts.month}-${pad(checkpointDay)}`;
+  return {key: date, date};
+}
+function showCustomerUtangReminder() {
+  const period = customerUtangReminderPeriod();
+  if (!period || !customerUnpaidUtangs.length || !user) return;
+  const eligible = customerUnpaidUtangs.filter(debt => {
+    if (!debt.created_at) return false;
+    const created = philippinesDateParts(new Date(debt.created_at));
+    return `${created.year}-${created.month}-${created.day}` <= period.date;
+  });
+  if (!eligible.length) return;
+  if (dlg.open) return;
+  const key = `vane-pos-utang-reminder:${user.id}:${period.key}`;
+  if (lastCustomerUtangReminderKey === key) return;
+  try {
+    if (localStorage.getItem(key) === '1') return;
+    localStorage.setItem(key, '1');
+  } catch (err) {
+    console.warn('Could not save utang reminder state:', err);
+  }
+  lastCustomerUtangReminderKey = key;
+  const total = eligible.reduce((sum, debt) => sum + Number(debt.total || 0), 0);
+  const dayText = period.date.slice(-2);
+  openDlg(`<h2>Pahinumdom sa imong Utang</h2>
+    <p class="meta">Karon ang takdang pahinumdom sa ika-${Number(dayText)} sa bulan. Aduna kay ${eligible.length} ka kumpirmadong bayranan nga wala pa mabayri, total nga <strong>${money(total)}</strong>. Palihug bayri kini sa tindahan. Kung nakabayad na ka, pakig-coordinate sa tindahan aron ma-update ang bayad.</p>
+    <div class="dlg-actions"><button class="btn primary" data-act="closeDlg" style="flex:1">Sige</button></div>`);
+}
+dlg.addEventListener('close', showCustomerUtangReminder);
+async function loadCustomerUtangReminders() {
+  const id = user && user.id;
+  if (!id || !isCustomerOrderMode() || !navigator.onLine) return;
+  lastCustomerUtangCheckDate = philippinesDateKey();
+  try {
+    const result = await callCustomerOrders({action: 'my_unpaid_utangs'});
+    if (!user || user.id !== id || !isCustomerOrderMode()) return;
+    customerUnpaidUtangs = Array.isArray(result.debts) ? result.debts : [];
+    showCustomerUtangReminder();
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    toast(err.message || 'Could not check your unpaid Utang balance.', 'bad');
+    console.warn('Customer Utang reminder check failed:', err);
+  }
+}
+async function checkUserAdmin() {
+  const id = user && user.id;
+  if (!id || !navigator.onLine) return;
+  try {
+    const result = await callUserAdmin({action: 'check'});
+    if (!user || user.id !== id) return;
+    setUserAdmin(result.isAdmin === true);
+    if (!result.isAdmin) {
+      await loadCustomerCatalog();
+      await loadCustomerUtangReminders();
+    }
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    setUserAdmin(false);
+    await loadCustomerCatalog();
+    await loadCustomerUtangReminders();
+    console.warn('User management access check failed:', err);
+    if (isKnownAdminAccount()) toast('User management is unavailable. Deploy the manage-users function and configure ADMIN_EMAILS.', 'bad');
+  }
+}
+function renderUsers() {
+  const list = managedUsers.filter(matchesAdminSearch);
+  $('#adminUserCount').textContent = managedUsers.length ? String(managedUsers.length) : '';
+  $('#adminTotalUsers').textContent = managedUsers.length.toLocaleString();
+  $('#adminActiveUsers').textContent = managedUsers.filter(u => u.last_sign_in_at && Date.now() - new Date(u.last_sign_in_at).getTime() <= 30 * 864e5).length.toLocaleString();
+  $('#adminAdmins').textContent = managedUsers.filter(u => u.is_admin).length.toLocaleString();
+  $('#usersStatus').textContent = list.length === managedUsers.length
+    ? `${managedUsers.length} account${managedUsers.length === 1 ? '' : 's'}`
+    : `${list.length} of ${managedUsers.length} accounts`;
+  renderUserTable(list);
+  renderUserTable([...managedUsers].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''))).slice(0, 5), '#adminRecentUsers', false);
+}
+function matchesAdminSearch(u) {
+  const q = $('#adminSearch').value.trim().toLowerCase();
+  return !q || `${u.email || ''} ${u.display_name || ''}`.toLowerCase().includes(q);
+}
+function renderUserTable(list, target = '#usersList', actions = true) {
+  const container = $(target);
+  if (!list.length) {
+    container.innerHTML = `<div class="admin-empty">${managedUsers.length ? 'No accounts match your search.' : 'No user accounts yet. Create accounts from Supabase Authentication.'}</div>`;
+    return;
+  }
+  container.innerHTML = `<table class="admin-table"><thead><tr><th>Account</th><th>Access</th><th>Last sign-in</th><th>Created</th>${actions ? '<th><span class="sr-only">Actions</span></th>' : ''}</tr></thead><tbody>${list.map(u => {
+    const label = u.display_name || u.email || 'User';
+    const initials = label.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+    const lastSignIn = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : 'Never';
+    const created = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+    const access = u.is_admin ? '<span class="admin-badge">Admin</span>' : '<span class="admin-badge staff">Customer</span>';
+    return `<tr><td><div class="admin-user-cell"><span class="admin-user-avatar">${esc(initials)}</span><span><strong>${esc(u.display_name || 'No display name')}</strong><small>${esc(u.email || 'No email')}</small></span></div></td>
+      <td>${access}</td><td>${esc(lastSignIn)}</td><td>${esc(created)}</td>${actions ? `<td><div class="admin-row-actions">
+        <button class="admin-icon-button" data-user-edit="${esc(u.id)}" aria-label="Edit ${esc(label)}" title="Edit user"><svg viewBox="0 0 24 24"><path d="m16 4 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15v5Z"/></svg></button>
+        <button class="admin-icon-button" data-user-reset="${esc(u.id)}" aria-label="Reset password for ${esc(label)}" title="Reset password"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5M12 7v5l3 2"/></svg></button>
+        ${u.id === user.id ? '' : `<button class="admin-icon-button" data-user-delete="${esc(u.id)}" aria-label="Delete ${esc(label)}" title="Delete user"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3"/></svg></button>`}</div></td>` : ''}</tr>`;
+  }).join('')}</tbody></table>`;
+}
+function openUserCreate() {
+  openDlg(`<h2>Add user</h2><p class="meta">Create an account that can sign in to this store.</p>
+    <form id="userCreateForm" novalidate>
+      <div class="admin-form-grid">
+        <label>First name<input id="newUserFirstName" required maxlength="60" autocomplete="given-name"></label>
+        <label>Last name<input id="newUserLastName" required maxlength="60" autocomplete="family-name"></label>
+        <label class="span-all">Email<input id="newUserEmail" type="email" required autocomplete="email"></label>
+        <label class="span-all">Password<input id="newUserPassword" type="password" required minlength="6" autocomplete="new-password"></label>
+        <label class="span-all">Role<select id="newUserRole" required><option value="customer">Customer</option><option value="admin">Admin</option></select></label>
+      </div>
+      <div class="dlg-actions"><button type="button" class="btn outline" data-act="closeDlg">Cancel</button><button type="submit" class="btn admin-primary">Add user</button></div>
+    </form>`);
+  $('#userCreateForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const firstName = $('#newUserFirstName').value.trim();
+    const lastName = $('#newUserLastName').value.trim();
+    const email = $('#newUserEmail').value.trim();
+    const password = $('#newUserPassword').value;
+    const role = $('#newUserRole').value;
+    if (!firstName || !lastName) { toast('Enter both first and last name.', 'bad'); return; }
+    if (!$('#newUserEmail').checkValidity()) { toast('Enter a valid email address.', 'bad'); return; }
+    if (password.length < 6) { toast('Use a password with at least 6 characters.', 'bad'); return; }
+    if (!['customer', 'admin'].includes(role)) { toast('Choose Customer or Admin as the role.', 'bad'); return; }
+    const button = e.submitter; if (button) { button.disabled = true; button.textContent = 'Adding…'; }
+    try {
+      await callUserAdmin({action: 'create', firstName, lastName, email, password, role});
+      dlg.close(); toast('User account created'); await loadUsers();
+    } catch (err) {
+      toast(err.message || 'Could not create user account.', 'bad');
+      if (button) { button.disabled = false; button.textContent = 'Add user'; }
+    }
+  });
+}
+async function loadUsers() {
+  if (!canOpenUserManagement()) return;
+  const callerId = user && user.id;
+  if (!callerId) return;
+  $('#usersStatus').textContent = 'Loading users…';
+  $('#usersList').innerHTML = '';
+  try {
+    const result = await callUserAdmin({action: 'list'});
+    if (!user || user.id !== callerId) return;
+    managedUsers = Array.isArray(result.users) ? result.users : [];
+    renderUsers();
+  } catch (err) {
+    if (!user || user.id !== callerId) return;
+    $('#usersStatus').textContent = 'Could not load users.';
+    $('#usersList').innerHTML = `<div class="admin-empty">Could not load accounts: ${esc(err.message || 'Try again.')}</div>`;
+    $('#adminRecentUsers').innerHTML = `<div class="admin-empty">Could not load accounts: ${esc(err.message || 'Try again.')}</div>`;
+  }
+}
+function renderOrders() {
+  const pending = customerOrders.filter(order => order.status === 'pending').length;
+  $('#adminOrderCount').textContent = pending ? String(pending) : '';
+  $('#ordersStatus').textContent = `${customerOrders.length} order${customerOrders.length === 1 ? '' : 's'} · ${pending} pending`;
+  if (!customerOrders.length) {
+    $('#adminOrderList').innerHTML = `<div class="admin-empty">No customer orders have been placed yet.</div>`;
+    return;
+  }
+  $('#adminOrderList').innerHTML = `<table class="admin-table"><thead><tr><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Requested</th><th>Status</th><th>Review</th></tr></thead><tbody>${customerOrders.map(order => {
+    const itemList = (Array.isArray(order.items) ? order.items : []).map(item => `${Number(item.quantity)} × ${esc(item.name)}`).join('<br>');
+    const requested = order.created_at ? new Date(order.created_at).toLocaleString() : '—';
+    const status = ['pending', 'approved', 'rejected'].includes(order.status) ? order.status : 'pending';
+    const paymentMethod = order.payment_method === 'utang' ? 'Utang' : order.payment_method === 'cash' ? 'Cash' : 'Not selected';
+    const actions = status === 'pending'
+      ? `<div class="admin-row-actions"><button class="btn admin-primary small" data-order-id="${esc(order.id)}" data-order-status="approved">Confirm ${esc(paymentMethod)}</button><button class="btn admin-secondary small" data-order-id="${esc(order.id)}" data-order-status="rejected">Decline</button></div>`
+      : '—';
+    return `<tr><td><strong>${esc(order.customer_name || 'Customer')}</strong><small>${esc(order.customer_email || '')}</small></td><td>${itemList || '—'}</td><td>${money(Number(order.total))}</td><td><span class="admin-badge ${paymentMethod === 'Utang' ? 'staff' : ''}">${esc(paymentMethod)}</span></td><td>${esc(requested)}</td><td><span class="admin-badge ${status === 'pending' ? 'staff' : ''}">${status[0].toUpperCase() + status.slice(1)}</span></td><td>${actions}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+async function loadOrders() {
+  if (!canOpenAdminDashboard()) return;
+  const callerId = user && user.id;
+  if (!callerId) return;
+  $('#ordersStatus').textContent = 'Loading orders…';
+  $('#adminOrderList').innerHTML = '';
+  try {
+    const result = await callCustomerOrders({action: 'list_orders'});
+    if (!user || user.id !== callerId) return;
+    customerOrders = Array.isArray(result.orders) ? result.orders : [];
+    renderOrders();
+  } catch (err) {
+    if (!user || user.id !== callerId) return;
+    $('#ordersStatus').textContent = 'Could not load orders.';
+    $('#adminOrderList').innerHTML = `<div class="admin-empty">Could not load order requests: ${esc(err.message || 'Try again.')}</div>`;
+  }
+}
+async function reviewCustomerOrder(id, status) {
+  const order = customerOrders.find(item => item.id === id);
+  if (!order || order.status !== 'pending' || !['approved', 'rejected'].includes(status)) return;
+  const approved = status === 'approved';
+  const paymentMethod = order.payment_method;
+  if (approved && !['cash', 'utang'].includes(paymentMethod)) {
+    toast('This order has no valid payment choice. Decline it and ask the customer to place it again.', 'bad');
+    return;
+  }
+  if (!await askConfirm({
+    title: approved ? `Confirm ${paymentMethod} order?` : 'Decline this order?',
+    message: approved
+      ? `This will record a ${paymentMethod === 'cash' ? 'paid cash sale' : 'customer utang balance'} and reduce stock for the ordered products.`
+      : 'This marks the request as declined without changing sales or stock.',
+    confirmText: approved ? `Confirm ${paymentMethod}` : 'Decline order',
+    danger: !approved
+  })) return;
+  try {
+    await callCustomerOrders({action: 'review_order', orderId: id, status, paymentMethod});
+    await pullRemote();
+    toast(approved ? `${paymentMethod === 'cash' ? 'Cash sale' : 'Utang sale'} recorded and stock updated` : 'Order declined');
+    await loadOrders();
+  } catch (err) {
+    toast(err.message || 'Could not update the order.', 'bad');
+  }
+}
+function openUserEdit(id) {
+  const target = managedUsers.find(u => u.id === id); if (!target) return;
+  const nameParts = String(target.display_name || '').trim().split(/\s+/).filter(Boolean);
+  const firstName = target.first_name || nameParts[0] || '';
+  const lastName = target.last_name || nameParts.slice(1).join(' ');
+  openDlg(`<h2>Edit user</h2><form id="userEditForm" data-user-id="${esc(target.id)}" novalidate>
+    <label for="userEditEmail">Email</label><input id="userEditEmail" type="email" value="${esc(target.email || '')}" required autocomplete="off">
+    <div class="admin-form-grid">
+      <label>First name<input id="userEditFirstName" value="${esc(firstName)}" required maxlength="60" autocomplete="given-name"></label>
+      <label>Last name<input id="userEditLastName" value="${esc(lastName)}" required maxlength="60" autocomplete="family-name"></label>
+      <label class="span-all">Role<select id="userEditRole"><option value="customer" ${target.role === 'customer' ? 'selected' : ''}>Customer</option><option value="admin" ${target.role === 'admin' ? 'selected' : ''}>Admin</option></select></label>
+    </div>
+    <div class="dlg-actions"><button type="button" class="btn outline" data-act="closeDlg">Cancel</button><button type="submit" class="btn primary">Save changes</button></div>
+  </form>`);
+  $('#userEditForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#userEditEmail').value.trim();
+    const firstName = $('#userEditFirstName').value.trim(), lastName = $('#userEditLastName').value.trim();
+    const role = $('#userEditRole').value;
+    if (!email || !$('#userEditEmail').checkValidity()) { toast('Enter a valid email address.', 'bad'); return; }
+    if (!firstName || !lastName) { toast('Enter both first and last name.', 'bad'); return; }
+    const button = e.submitter; if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+    try {
+      await callUserAdmin({action: 'update', userId: id, email, firstName, lastName, role});
+      dlg.close(); toast('User updated'); await loadUsers();
+    } catch (err) {
+      toast(err.message || 'Could not update user.', 'bad');
+      if (button) { button.disabled = false; button.textContent = 'Save changes'; }
+    }
+  });
+}
+function openUserPasswordReset(id) {
+  const target = managedUsers.find(u => u.id === id); if (!target) return;
+  openDlg(`<h2>Reset password</h2><p class="meta">Set a temporary password for ${esc(target.email || 'this user')}. Share it with them securely.</p>
+    <form id="userResetForm" data-user-id="${esc(target.id)}" novalidate>
+      <label for="userNewPassword">New password (at least 6 characters)</label><input id="userNewPassword" type="password" minlength="6" required autocomplete="new-password">
+      <label for="userConfirmPassword">Confirm new password</label><input id="userConfirmPassword" type="password" minlength="6" required autocomplete="new-password">
+      <div class="dlg-actions"><button type="button" class="btn outline" data-act="closeDlg">Cancel</button><button type="submit" class="btn primary">Reset password</button></div>
+    </form>`);
+  $('#userResetForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const password = $('#userNewPassword').value, confirmPassword = $('#userConfirmPassword').value;
+    if (password.length < 6) { toast('Use a password with at least 6 characters.', 'bad'); return; }
+    if (password !== confirmPassword) { toast('The passwords do not match.', 'bad'); return; }
+    const button = e.submitter; if (button) { button.disabled = true; button.textContent = 'Resetting…'; }
+    try {
+      await callUserAdmin({action: 'reset_password', userId: id, password});
+      dlg.close(); toast('Password reset. Share the temporary password securely.');
+    } catch (err) {
+      toast(err.message || 'Could not reset password.', 'bad');
+      if (button) { button.disabled = false; button.textContent = 'Reset password'; }
+    }
+  });
+}
 function configProblem() {
   const url = cfgUrl(), key = cfgKey();
   if (typeof window.SUPABASE_URL === 'undefined' && typeof window.SUPABASE_KEY === 'undefined') return 'config.js was not found. Keep config.js in the same folder as index.html, then reload.';
@@ -1082,6 +1823,8 @@ function configProblem() {
 
 function setLocked(locked) {
   document.body.classList.toggle('locked', locked);
+  document.body.classList.remove('admin-mode');
+  document.body.classList.remove('admin-dark');
   $('#login').hidden = !locked; $('.top').hidden = locked; $('main').hidden = locked;
   if (locked) window.scrollTo(0, 0);
 }
@@ -1089,7 +1832,9 @@ function setMsg(text, kind) {
   const m = $('#loginMsg'); m.textContent = text || ''; m.hidden = !text; m.className = 'login-msg' + (kind === 'info' ? ' info' : '');
 }
 function showLogin(msg, kind, m) {
-  user = null; syncReset(); cart = {}; closeCart(); if (dlg.open) dlg.close();
+  user = null; customerCatalog = []; customerCatalogReady = false; customerCatalogError = ''; customerOrders = [];
+  customerUnpaidUtangs = []; lastCustomerUtangCheckDate = ''; lastCustomerUtangReminderKey = '';
+  setUserAdmin(false); managedUsers = []; syncReset(); cart = {}; closeCart(); if (dlg.open) dlg.close();
   $('#cash').value = ''; $('#customer').value = '';
   setLocked(true); setMode(m || 'signin');
   const problem = configProblem();
@@ -1098,7 +1843,9 @@ function showLogin(msg, kind, m) {
   setTimeout(() => { const f = $(mode === 'reset' ? '#l-pw' : '#l-email'); if (f) f.focus(); }, 50);
 }
 function enterApp(u, offline) {
-  user = u; KEY = KEYBASE + ':' + u.id;
+  user = u; customerCatalog = []; customerCatalogReady = false; customerCatalogError = ''; customerOrders = [];
+  customerUnpaidUtangs = []; lastCustomerUtangCheckDate = ''; lastCustomerUtangReminderKey = '';
+  setUserAdmin(false); managedUsers = []; KEY = KEYBASE + ':' + u.id;
   const adopt = !localStorage.getItem(KEY) && !!localStorage.getItem(KEYBASE);
   S = load();
   if (adopt) { save(); if (localStorage.getItem(KEY)) { try { localStorage.removeItem(KEYBASE); } catch (e) {} } }
@@ -1107,8 +1854,16 @@ function enterApp(u, offline) {
     else { localStorage.removeItem(FLAG); localStorage.removeItem(FLAG + '-email'); }
   } catch (e) {}
   ui.tab = 'sell'; setLocked(false); renderHeader(); setTab('sell');
-  if (offline) { setSync('Offline: saved on this device'); toast('Offline: opened with the last signed-in account.'); }
-  else initSync();
+  if (offline) {
+    setSync('Offline: saved on this device');
+    if (isCustomerOrderMode()) {
+      customerCatalogReady = true;
+      customerCatalogError = 'Connect to the internet to load products and place an order.';
+      renderGrid(); renderCart();
+    }
+    toast('Offline: opened with the last signed-in account.');
+  }
+  else { initSync(); checkUserAdmin(); }
 }
 async function logout() {
   const hasCartItems = cartCount() > 0;
@@ -1172,7 +1927,10 @@ $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (!sb) { setMsg('Setup needed: ' + (configProblem() || 'the sign-in service is not ready. Reload the page.'), 'info'); return; }
   const email = $('#l-email').value.trim(), pw = $('#l-pw').value, pw2 = $('#l-pw2').value;
+  const firstName = $('#l-first-name').value.trim(), lastName = $('#l-last-name').value.trim();
   if (mode !== 'reset' && !email) { setMsg('Enter your email.'); return; }
+  if (mode === 'signup' && (!firstName || !lastName)) { setMsg('Enter your first and last name.'); return; }
+  if (mode === 'signup' && (firstName.length > 60 || lastName.length > 60)) { setMsg('Names must be 60 characters or fewer.'); return; }
   if (mode !== 'forgot' && !pw) { setMsg(mode === 'signin' ? 'Enter your email and password.' : 'Enter a password.'); return; }
   if ((mode === 'signup' || mode === 'reset')) {
     if (pw.length < 6) { setMsg('Use a password with at least 6 characters.'); return; }
@@ -1185,7 +1943,14 @@ $('#loginForm').addEventListener('submit', async e => {
       if (error) throw error;
       enterApp(data.user);
     } else if (mode === 'signup') {
-      const {data, error} = await sb.auth.signUp({email, password: pw, options: {emailRedirectTo: redirectUrl()}});
+      const {data, error} = await sb.auth.signUp({
+        email,
+        password: pw,
+        options: {
+          emailRedirectTo: redirectUrl(),
+          data: {first_name: firstName, last_name: lastName, display_name: `${firstName} ${lastName}`, role: 'customer'}
+        }
+      });
       if (error) throw error;
       if (data.session) enterApp(data.session.user);
       else if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) setMsg('That email already has an account. Sign in, or use Forgot password.');
@@ -1375,10 +2140,22 @@ async function pullRemote() {
   } finally { syncing = false; }
 }
 function retrySync() { if (!user || !sb) return; if (!snap) initSync(); else if (isDirty()) runSync(); else pullRemote(); }
-window.addEventListener('online', retrySync);
-setInterval(() => { if (navigator.onLine) retrySync(); }, 60000);
+window.addEventListener('online', () => { retrySync(); checkUserAdmin(); });
+setInterval(() => {
+  if (!navigator.onLine) return;
+  retrySync();
+  if (user && isCustomerOrderMode() && philippinesDateKey() !== lastCustomerUtangCheckDate) loadCustomerUtangReminders();
+}, 60000);
 
 /* ---------- boot ---------- */
+function initAdminModules() {
+  const container = $('#adminModules');
+  ['view-dashboard', 'view-products', 'view-utang', 'view-reports'].forEach(id => {
+    const module = $('#' + id);
+    if (module) container.append(module);
+  });
+}
+initAdminModules();
 start();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

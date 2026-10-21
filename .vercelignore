@@ -1,0 +1,8 @@
+.vscode
+.git
+.vercel
+.env*
+supabase
+vane-hams-pos
+README.md
+*.sql
