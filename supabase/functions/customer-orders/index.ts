@@ -179,9 +179,44 @@ Deno.serve(async request => {
         payment_method: paymentMethod,
         ewallet_provider: paymentMethod === 'ewallet' ? walletProvider : null,
         status: 'pending'
-      }).select('id,total,items').single();
+      }).select('id,total,items,status,payment_method,ewallet_provider,created_at').single();
       if (orderError) throw new HttpError(502, 'Could not save the order request.');
-      return respond({success: true, id: order.id, total: Number(order.total), items: order.items});
+      return respond({
+        success: true,
+        id: order.id,
+        total: Number(order.total),
+        items: order.items,
+        status: order.status,
+        paymentMethod: order.payment_method,
+        walletProvider: order.ewallet_provider,
+        createdAt: order.created_at
+      });
+    }
+
+    if (body.action === 'my_orders') {
+      const ownerId = await getStoreOwnerId();
+      const {data: orders, error: ordersError} = await admin.from('customer_orders')
+        .select('id,items,total,status,payment_method,ewallet_provider,sale_id,created_at')
+        .eq('customer_id', authData.user.id)
+        .order('created_at', {ascending: false})
+        .limit(100);
+      if (ordersError) throw new HttpError(502, 'Could not load your purchases.');
+      const saleIds = (orders || []).map(order => order.sale_id).filter(Boolean);
+      if (!saleIds.length) {
+        return respond({orders: (orders || []).map(order => ({...order, paid: null}))});
+      }
+      const {data: sales, error: salesError} = await admin.from('sales')
+        .select('id,paid')
+        .eq('user_id', ownerId)
+        .in('id', saleIds);
+      if (salesError) throw new HttpError(502, 'Could not load your purchase payment status.');
+      const saleById = new Map((sales || []).map(sale => [sale.id, sale]));
+      return respond({
+        orders: (orders || []).map(order => ({
+          ...order,
+          paid: order.sale_id && saleById.has(order.sale_id) ? saleById.get(order.sale_id)?.paid === true : null
+        }))
+      });
     }
 
     if (body.action === 'my_unpaid_utangs') {

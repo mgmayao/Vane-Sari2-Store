@@ -180,6 +180,23 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .wallet-qr{display:block;width:min(100%,320px);max-height:42dvh;object-fit:contain;margin:12px auto;border:1px solid var(--line);border-radius:10px;background:#fff}
 .wallet-info{padding:12px;border-radius:10px;background:var(--wash);text-align:center}
 .wallet-account{font-size:1.25rem;font-weight:800;letter-spacing:.03em}
+.customer-purchases-page{padding:16px;background:#fff;border:1.5px solid var(--line);border-radius:var(--r)}
+.customer-purchases-page .customer-purchases-head h2{margin:0}
+.customer-purchases-page .customer-purchases-head p{margin:4px 0 0}
+.customer-purchases-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pending-review-total{margin:12px 0;padding:14px 16px;background:var(--wash);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r)}
+.pending-review-total span{display:block;color:var(--ink2);font-size:.85rem;font-weight:600}
+.pending-review-total strong{display:block;margin-top:3px;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.pending-review-total small{color:var(--ink2)}
+.customer-purchase{padding:12px 0;border-top:1px solid var(--line)}
+.customer-purchase:first-child{border-top:0}
+.customer-purchase-head,.customer-purchase-item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.customer-purchase-items{margin:8px 0;color:var(--ink2);font-size:.9rem}
+.customer-purchase-total{font-weight:800;white-space:nowrap}
+.customer-purchase-status{font-size:.82rem;font-weight:700}
+.customer-purchase-status[data-status="pending"]{color:#b7791f}
+.customer-purchase-status[data-status="approved"]{color:var(--go)}
+.customer-purchase-status[data-status="rejected"]{color:var(--bad)}
 .clear-wrap{text-align:center;margin-top:6px}
 .cartbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:32;
   min-height:56px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:space-between;
@@ -476,6 +493,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   </div>
   <nav class="tabs" id="tabs" aria-label="Main">
     <button data-tab="sell" aria-current="page"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Sell</button>
+    <button data-tab="purchases" id="customerPurchasesTab" hidden><svg viewBox="0 0 24 24"><path d="M4 5h16v15H4z"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h7"/></svg>My purchases</button>
   </nav>
   <button class="btn outline small" id="enableUtangPush" type="button" hidden>Enable bill reminders</button>
   <button class="btn small admin-entry" data-tab="admin" id="openAdminDashboard" hidden>Admin Dashboard</button>
@@ -533,6 +551,12 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
       <div class="clear-wrap"><button class="link" id="btnClear">Clear sale</button></div>
     </aside>
     <button class="cartbar mobile-only" id="cartbar" hidden><span id="cbCount">0 items</span><strong id="cbTotal">₱0</strong><span>View sale</span></button>
+  </section>
+  <section id="view-purchases" class="view customer-purchases-page" hidden aria-label="My purchases">
+    <div class="customer-purchases-head"><div><h2>My purchases</h2><p class="meta">Review your submitted orders and their status.</p></div><button class="btn outline small" id="refreshCustomerPurchases" type="button">Refresh</button></div>
+    <div id="pendingReviewTotal" class="pending-review-total" hidden aria-live="polite"></div>
+    <p id="customerPurchasesStatus" class="meta" role="status" aria-live="polite">Loading your orders…</p>
+    <div id="customerPurchasesList"></div>
   </section>
 
   <!-- PRODUCTS -->
@@ -764,11 +788,13 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 /* ---------- tabs ---------- */
 function setTab(t) {
-  if (t !== 'sell' && !canOpenAdminDashboard()) { toast('The admin dashboard is available only to administrator accounts.', 'bad'); return; }
-  if (!['sell', 'admin', 'dashboard', 'products', 'utang', 'reports', 'orders', 'users'].includes(t)) return;
+  if (t === 'purchases' && !isCustomerOrderMode()) { toast('Purchase history is available only to customer accounts.', 'bad'); return; }
+  if (!['sell', 'purchases'].includes(t) && !canOpenAdminDashboard()) { toast('The admin dashboard is available only to administrator accounts.', 'bad'); return; }
+  if (!['sell', 'purchases', 'admin', 'dashboard', 'products', 'utang', 'reports', 'orders', 'users'].includes(t)) return;
   ui.tab = t;
-  const inAdmin = t !== 'sell';
-  $('#view-sell').hidden = inAdmin;
+  const inAdmin = !['sell', 'purchases'].includes(t);
+  $('#view-sell').hidden = t !== 'sell';
+  $('#view-purchases').hidden = t !== 'purchases';
   $('#adminShell').hidden = !inAdmin;
   const activeView = t === 'admin' ? 'dashboard' : t;
   $$('#adminModules .view').forEach(v => { v.hidden = v.id !== 'view-' + activeView; });
@@ -786,6 +812,7 @@ function setTab(t) {
   $$('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
   closeCart();
   if (t === 'sell') { renderCats(); renderGrid(); renderCart(); }
+  if (t === 'purchases') loadCustomerPurchases();
   if (t === 'dashboard' || t === 'admin') renderDashboard();
   if (t === 'products') renderProducts();
   if (t === 'utang') renderUtang();
@@ -803,6 +830,7 @@ function renderHeader() {
   $('#loginStoreName').textContent = storeName;
   $('#loginFooterName').textContent = storeName;
   document.title = storeName + ' POS';
+  $('#todayLine').hidden = isCustomerOrderMode();
   const d = new Date(); d.setHours(0, 0, 0, 0);
   const today = S.sales.filter(s => s.ts >= +d && !isVoided(s));
   $('#todayLine').textContent = `Today: ${money(today.reduce((a, s) => a + s.total, 0))} from ${today.length} sale${today.length === 1 ? '' : 's'}`;
@@ -994,6 +1022,7 @@ function openEwalletPayment() {
 async function submitCustomerOrder(paymentMethod, walletProvider = '') {
   const lines = cartLines();
   if (!isCustomerOrderMode() || !lines.length || !['cash', 'utang', 'ewallet'].includes(paymentMethod)) return;
+  const customerId = user && user.id;
   if (paymentMethod === 'ewallet' && !walletProviders[walletProvider]) {
     toast('Choose Metrobank, GCash, or MariBank first.', 'bad');
     return;
@@ -1011,8 +1040,24 @@ async function submitCustomerOrder(paymentMethod, walletProvider = '') {
       ...(paymentMethod === 'ewallet' ? {walletProvider} : {}),
       items: lines.map(({p, q}) => ({productId: String(p.id), quantity: q, unitPrice: p.price}))
     });
-    if (!user) return;
+    if (!user || user.id !== customerId) return;
     const orderItems = Array.isArray(result.items) ? result.items : [];
+    if (result.id) {
+      customerPurchasesOwnerId = customerId;
+      customerPurchasesLoaded = true;
+      customerPurchases.unshift({
+        id: result.id,
+        items: orderItems,
+        total: Number(result.total),
+        status: result.status || 'pending',
+        payment_method: result.paymentMethod || paymentMethod,
+        ewallet_provider: result.walletProvider || null,
+        created_at: result.createdAt || new Date().toISOString(),
+        paid: null
+      });
+      customerPurchases = customerPurchases.slice(0, 100);
+      renderCustomerPurchases();
+    }
     dlg.close();
     clearCart(); renderGrid();
     const paymentMessage = paymentMethod === 'utang'
@@ -1428,6 +1473,7 @@ keepLoggedIn.addEventListener('change', () => {
   try { localStorage.setItem(KEEP_LOGIN_KEY, String(keepLoggedIn.checked)); } catch (e) {}
 });
 let sb = null, user = null, userAdmin = false, managedUsers = [], customerOrders = [];
+let customerPurchases = [], customerPurchasesLoading = false, customerPurchasesError = '', customerPurchasesOwnerId = '', customerPurchasesLoaded = false;
 let customerUnpaidUtangs = [], lastCustomerUtangCheckDate = '', lastCustomerUtangReminderKey = '';
 const PUSH_PUBLIC_KEY = 'BP2OAdL3tY4FqsmgAVby90qjezAzFPOM2uuKqLyE5603AbEbmmjS_mp7YodV4-CYIUeG1vmecaOqOFWTF0_fjVo';
 const cfgUrl = () => String(window.SUPABASE_URL || '').trim();
@@ -1444,7 +1490,9 @@ function canOpenUserManagement() { return canOpenAdminDashboard(); }
 function setUserAdmin(value) {
   userAdmin = !!value;
   const canOpenDashboard = canOpenAdminDashboard();
+  $('#todayLine').hidden = isCustomerOrderMode();
   $('#enableUtangPush').hidden = !isCustomerOrderMode();
+  $('#customerPurchasesTab').hidden = !isCustomerOrderMode();
   if (isCustomerOrderMode()) refreshUtangPushButton();
   $('#openAdminDashboard').hidden = !canOpenDashboard;
   $('#openUserAdmin').hidden = !canOpenDashboard;
@@ -1499,6 +1547,87 @@ async function callCustomerOrders(body) {
   try { result = await response.json(); } catch (e) {}
   if (!response.ok) throw new Error(result.error || `Order request failed (${response.status}).`);
   return result;
+}
+function customerPaymentLabel(order) {
+  if (order.payment_method === 'utang') return `Utang${order.paid === false ? ' · Unpaid' : order.paid === true ? ' · Paid' : ''}`;
+  if (order.payment_method === 'ewallet') {
+    const provider = walletProviders[order.ewallet_provider];
+    return `E-wallet${provider ? ` · ${provider.label}` : ''}${order.paid === true ? ' · Paid' : ''}`;
+  }
+  return 'Cash';
+}
+function renderCustomerPurchases() {
+  const status = $('#customerPurchasesStatus');
+  const list = $('#customerPurchasesList');
+  const refresh = $('#refreshCustomerPurchases');
+  const pendingOrders = customerPurchases.filter(order => order.status === 'pending');
+  const pendingTotal = pendingOrders.reduce((total, order) => total + (Number(order.total) || 0), 0);
+  const pendingSummary = $('#pendingReviewTotal');
+  pendingSummary.hidden = !customerPurchasesLoaded;
+  pendingSummary.innerHTML = `<span>Total pending review</span><strong>${money(pendingTotal)}</strong><small>${pendingOrders.length} order${pendingOrders.length === 1 ? '' : 's'} awaiting review</small>`;
+  refresh.disabled = customerPurchasesLoading;
+  refresh.textContent = customerPurchasesLoading ? 'Loading…' : 'Refresh';
+  if (customerPurchasesLoading) {
+    status.textContent = 'Loading your orders…';
+  } else if (customerPurchasesError) {
+    status.textContent = customerPurchasesError;
+  } else if (!navigator.onLine && !customerPurchases.length) {
+    status.textContent = 'Connect to the internet to load your purchase history.';
+  } else if (!customerPurchases.length) {
+    status.textContent = 'No purchases yet. Your submitted orders will appear here.';
+  } else if (!navigator.onLine) {
+    status.textContent = 'Offline · showing previously loaded orders.';
+  } else {
+    status.textContent = `${customerPurchases.length} recent order${customerPurchases.length === 1 ? '' : 's'}`;
+  }
+  list.innerHTML = customerPurchases.map(order => {
+    const date = order.created_at ? new Date(order.created_at) : null;
+    const dateLabel = date && Number.isFinite(date.getTime())
+      ? new Intl.DateTimeFormat('en-PH', {dateStyle: 'medium', timeStyle: 'short'}).format(date)
+      : 'Date unavailable';
+    const statusLabels = {pending: 'Pending review', approved: 'Confirmed', rejected: 'Declined'};
+    const orderStatus = statusLabels[order.status] || 'Status unavailable';
+    const items = Array.isArray(order.items) ? order.items : [];
+    return `<article class="customer-purchase">
+      <div class="customer-purchase-head"><strong>${esc(dateLabel)}</strong><span class="customer-purchase-status" data-status="${esc(order.status)}">${esc(orderStatus)}</span></div>
+      <div class="customer-purchase-items">${items.map(item => `<div class="customer-purchase-item"><span>${Number(item.quantity) || 0} × ${esc(item.name || 'Item')}</span><span>${money((Number(item.price) || 0) * (Number(item.quantity) || 0))}</span></div>`).join('')}</div>
+      <div class="customer-purchase-head"><span class="meta">${esc(customerPaymentLabel(order))}</span><strong class="customer-purchase-total">${money(Number(order.total) || 0)}</strong></div>
+    </article>`;
+  }).join('');
+}
+async function loadCustomerPurchases() {
+  const id = user && user.id;
+  if (!id || !isCustomerOrderMode()) return;
+  if (customerPurchasesOwnerId !== id) {
+    customerPurchasesOwnerId = id;
+    customerPurchases = [];
+    customerPurchasesLoaded = false;
+  }
+  if (!navigator.onLine) {
+    customerPurchasesLoading = false;
+    customerPurchasesError = '';
+    renderCustomerPurchases();
+    return;
+  }
+  customerPurchasesError = '';
+  customerPurchasesLoading = true;
+  renderCustomerPurchases();
+  try {
+    const result = await callCustomerOrders({action: 'my_orders'});
+    if (!user || user.id !== id || !isCustomerOrderMode()) return;
+    customerPurchases = Array.isArray(result.orders) ? result.orders : [];
+    customerPurchasesLoaded = true;
+    customerPurchasesError = '';
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    customerPurchasesError = err.message || 'Could not load your purchase history.';
+    console.warn('Customer purchase history load failed:', err);
+  } finally {
+    if (user && user.id === id) {
+      customerPurchasesLoading = false;
+      renderCustomerPurchases();
+    }
+  }
 }
 function vapidKeyBytes(key) {
   const padding = '='.repeat((4 - key.length % 4) % 4);
@@ -1557,6 +1686,7 @@ async function enableCustomerUtangPush() {
   }
 }
 $('#enableUtangPush').addEventListener('click', enableCustomerUtangPush);
+$('#refreshCustomerPurchases').addEventListener('click', loadCustomerPurchases);
 async function loadCustomerCatalog() {
   const id = user && user.id;
   if (!id || !isCustomerOrderMode()) return;
@@ -1648,12 +1778,14 @@ async function checkUserAdmin() {
     setUserAdmin(result.isAdmin === true);
     if (!result.isAdmin) {
       await loadCustomerCatalog();
+      await loadCustomerPurchases();
       await loadCustomerUtangReminders();
     }
   } catch (err) {
     if (!user || user.id !== id) return;
     setUserAdmin(false);
     await loadCustomerCatalog();
+    await loadCustomerPurchases();
     await loadCustomerUtangReminders();
     console.warn('User management access check failed:', err);
     if (isKnownAdminAccount()) toast('User management is unavailable. Deploy the manage-users function and configure ADMIN_EMAILS.', 'bad');
@@ -1962,11 +2094,18 @@ function setMode(m) {
 const AUTH_REDIRECT_URL = 'https://vane-sari2-store.vercel.app/';
 function authErr(err) {
   const m = String((err && err.message) || '');
+  const code = String((err && err.code) || '');
+  if (/over_email_send_rate_limit|email rate limit exceeded|email rate limit/i.test(`${code} ${m}`)) {
+    return 'Supabase has temporarily limited confirmation emails from its default sender. Please do not keep retrying. The store admin needs to configure a custom SMTP email provider in Supabase; then request a new confirmation email. Your account may already have been created.';
+  }
+  if (/over_request_rate_limit/i.test(`${code} ${m}`)) {
+    return 'Too many requests were sent in a short time. Please wait before trying again. If this keeps happening, contact the store admin.';
+  }
   if (/invalid login/i.test(m)) return 'Wrong email or password.';
   if (/not confirmed/i.test(m)) return 'Please confirm your email first. Open the link we sent you, then sign in.';
   if (/already registered/i.test(m)) return 'That email already has an account. Sign in, or use Forgot password.';
   if (/signups? not allowed|signups? (are )?disabled/i.test(m)) return 'Creating accounts is turned off for this store.';
-  if (/rate limit|too many|only request this after/i.test(m)) return 'Too many tries. Wait a few minutes and try again.';
+  if (/rate limit|too many|only request this after/i.test(m)) return 'The service has temporarily limited requests. Please wait before trying again. If this is account creation, the store admin may need to configure custom SMTP in Supabase.';
   if (/at least \d+ char/i.test(m)) return 'Use a longer password (at least 6 characters).';
   if (/different from the old|same as the old/i.test(m)) return 'Choose a password you have not used before.';
   if (/invalid email|unable to validate email|is invalid/i.test(m)) return 'That email address does not look right.';
