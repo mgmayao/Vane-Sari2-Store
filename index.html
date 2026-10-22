@@ -172,7 +172,14 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .pay-actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
 .pay-actions .btn{min-height:54px;font-size:1.05rem}
 .customer-order-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.customer-order-actions [data-order-payment="ewallet"]{grid-column:1/-1}
 .customer-order-button{width:100%;min-height:54px;font-size:1.05rem}
+.wallet-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.wallet-option{min-height:48px;padding:8px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
+.wallet-option[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.wallet-qr{display:block;width:min(100%,320px);max-height:42dvh;object-fit:contain;margin:12px auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.wallet-info{padding:12px;border-radius:10px;background:var(--wash);text-align:center}
+.wallet-account{font-size:1.25rem;font-weight:800;letter-spacing:.03em}
 .clear-wrap{text-align:center;margin-top:6px}
 .cartbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:32;
   min-height:56px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:space-between;
@@ -521,6 +528,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
       <div class="customer-order-actions" id="customerOrderActions" hidden>
         <button class="btn primary customer-order-button" data-order-payment="cash" disabled>Place order · Cash</button>
         <button class="btn secondary customer-order-button" data-order-payment="utang" disabled>Utang</button>
+        <button class="btn outline customer-order-button" data-order-payment="ewallet" disabled>E-wallet Payment</button>
       </div>
       <div class="clear-wrap"><button class="link" id="btnClear">Clear sale</button></div>
     </aside>
@@ -892,7 +900,8 @@ function renderCart() {
   $('#customerOrderActions').hidden = !customerMode;
   $$('[data-order-payment]').forEach(button => {
     button.disabled = !lines.length || !customerCatalogReady || !navigator.onLine;
-    button.textContent = `${button.dataset.orderPayment === 'cash' ? 'Place order · Cash' : 'Utang'}${t ? ` · ${money(t)}` : ''}`;
+    const labels = {cash: 'Place order · Cash', utang: 'Utang', ewallet: 'E-wallet Payment'};
+    button.textContent = `${labels[button.dataset.orderPayment]}${t ? ` · ${money(t)}` : ''}`;
   });
   const n = cartCount();
   $('#cbCount').textContent = `${n} item${n === 1 ? '' : 's'}`; $('#cbTotal').textContent = money(t);
@@ -938,7 +947,7 @@ function checkout(mode) {
     id: uid(), ts: Date.now(),
     items: lines.map(({p, q}) => ({pid: p.id, name: p.name, qty: q, price: p.price, cost: p.cost})),
     total: t, profit: r2(lines.reduce((a, {p, q}) => a + (p.price - (+p.cost || 0)) * q, 0)),
-    customer, paid: mode === 'cash', paidAt: mode === 'cash' ? Date.now() : null,
+    customer, paymentMethod: mode, paymentProvider: null, paid: mode === 'cash', paidAt: mode === 'cash' ? Date.now() : null,
     cash: mode === 'cash' ? cash : 0, change: mode === 'cash' ? r2(cash - t) : 0
   };
   lines.forEach(({p, q}) => { p.stock = Math.max(0, (+p.stock || 0) - q); recordStockMovement(p, -q, 'Sale', sale.id); });
@@ -952,17 +961,54 @@ function checkout(mode) {
     ${mode === 'cash' ? `<div class="rcpt-change"><span class="meta">Change</span><strong>${money(sale.change)}</strong></div>` : `<p class="meta">Added to ${esc(customer)}'s unpaid balance.</p>`}
     <div class="dlg-actions"><button class="btn primary" data-act="closeDlg" style="flex:1">New sale</button></div>`);
 }
-async function submitCustomerOrder(paymentMethod) {
+const walletProviders = {
+  metrobank: {label: 'Metrobank', image: 'MetrobankQR.jpg', scannable: true},
+  gcash: {label: 'GCash', image: 'gcash-payment-info.jpg', scannable: false},
+  maribank: {label: 'MariBank', image: 'MariBankQR.jpg', scannable: true}
+};
+function renderWalletProvider(provider) {
+  const wallet = walletProviders[provider];
+  if (!wallet) return;
+  $('#walletProvider').value = provider;
+  $$('.wallet-option').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.walletProvider === provider)));
+  $('#walletDetails').hidden = false;
+  $('#walletDetails').innerHTML = `<h3>${esc(wallet.label)}</h3>
+    ${wallet.scannable
+      ? `<p class="meta">I-scan ang QR gamit ang imong banking app ug bayri ang total nga <strong>${money(cartTotal())}</strong>.</p>
+        <img class="wallet-qr" src="${esc(wallet.image)}" alt="${esc(wallet.label)} payment QR code">`
+      : `<p class="meta">Ipadala ang total nga <strong>${money(cartTotal())}</strong> sa GCash number nga naa sa hulagway.</p>
+        <img class="wallet-qr" src="${esc(wallet.image)}" alt="GCash payment number">
+        <div class="wallet-info"><span>GCash number</span><div class="wallet-account">+63 995 790 1456</div></div>`}
+    <p class="meta">Human makabayad, i-submit ang order. Hulata nga ma-verify sa tindahan ang bayad sa dili pa kini ma-confirm.</p>
+    <div class="dlg-actions"><button class="btn outline" data-act="closeDlg">Cancel</button><button class="btn primary" data-wallet-submit>I paid · Submit order</button></div>`;
+}
+function openEwalletPayment() {
+  if (!cartLines().length || !isCustomerOrderMode()) return;
+  openDlg(`<h2>E-wallet Payment</h2><p class="meta">Pilia ang imong bangko o wallet, dayon i-scan ang QR o gamita ang GCash number.</p>
+    <div class="wallet-options" role="group" aria-label="Choose e-wallet">
+      ${Object.entries(walletProviders).map(([key, wallet]) => `<button class="wallet-option" type="button" data-wallet-provider="${key}" aria-pressed="false">${esc(wallet.label)}</button>`).join('')}
+    </div>
+    <input id="walletProvider" type="hidden" value="">
+    <div id="walletDetails" hidden></div>`);
+}
+async function submitCustomerOrder(paymentMethod, walletProvider = '') {
   const lines = cartLines();
-  if (!isCustomerOrderMode() || !lines.length || !['cash', 'utang'].includes(paymentMethod)) return;
+  if (!isCustomerOrderMode() || !lines.length || !['cash', 'utang', 'ewallet'].includes(paymentMethod)) return;
+  if (paymentMethod === 'ewallet' && !walletProviders[walletProvider]) {
+    toast('Choose Metrobank, GCash, or MariBank first.', 'bad');
+    return;
+  }
   const buttons = $$('[data-order-payment]');
   buttons.forEach(button => { button.disabled = true; });
   const activeButton = $(`[data-order-payment="${paymentMethod}"]`);
-  activeButton.textContent = 'Submitting…';
+  if (activeButton) activeButton.textContent = 'Submitting…';
+  const submitButton = $('[data-wallet-submit]');
+  if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Submitting…'; }
   try {
     const result = await callCustomerOrders({
       action: 'place_order',
       paymentMethod,
+      ...(paymentMethod === 'ewallet' ? {walletProvider} : {}),
       items: lines.map(({p, q}) => ({productId: String(p.id), quantity: q, unitPrice: p.price}))
     });
     if (!user) return;
@@ -971,12 +1017,16 @@ async function submitCustomerOrder(paymentMethod) {
     clearCart(); renderGrid();
     const paymentMessage = paymentMethod === 'utang'
       ? 'Kung ma-confirm sa tindahan ang imong Utang order, bayaran kini kada ika-15 ug ika-30 sa bulan. Magpakita og pahinumdom diri sa app kung naa pay wala mabayri.'
+      : paymentMethod === 'ewallet'
+        ? `Na-submit ang imong ${walletProviders[walletProvider].label} payment request. I-verify pa sa tindahan ang bayad sa dili pa i-confirm ang order.`
       : 'I-review pa sa tindahan ang imong order. Walay bayad o stock change hangtod ma-confirm kini.';
-    openDlg(`<h2>Salamat sa pagpalit!</h2><p class="meta">Na-submit na ang imong ${paymentMethod === 'cash' ? 'Cash' : 'Utang'} order. ${paymentMessage}</p>
+    const paymentLabel = paymentMethod === 'cash' ? 'Cash' : paymentMethod === 'utang' ? 'Utang' : `E-wallet · ${walletProviders[walletProvider].label}`;
+    openDlg(`<h2>Salamat sa pagpalit!</h2><p class="meta">Na-submit na ang imong ${esc(paymentLabel)} order. ${paymentMessage}</p>
       <div class="rcpt">${orderItems.map(i => `<div><span>${Number(i.quantity)} × ${esc(i.name)}</span><b>${money(Number(i.price) * Number(i.quantity))}</b></div>`).join('')}
         <div style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><b>Your total</b><b>${money(Number(result.total))}</b></div></div>
       <div class="dlg-actions"><button class="btn primary" data-act="closeDlg" style="flex:1">Continue shopping</button></div>`);
   } catch (err) {
+    if (submitButton && dlg.open) { submitButton.disabled = false; submitButton.textContent = 'I paid · Submit order'; }
     toast(err.message || 'Could not submit your order. Please try again.', 'bad');
   } finally {
     renderCart();
@@ -1229,7 +1279,7 @@ function renderReports() {
   const unpaid = sum(list.filter(s => !s.paid), s => s.total);
   const metrics = [
     ['Sales', money(sales), ''], ['Profit', money(profit), 'profit'], ['Transactions', list.length, ''],
-    ['Cash collected', money(sales - unpaid), ''], ['Unpaid utang', money(unpaid), 'unpaid'], ['Cost of goods', money(sales - profit), '']
+    ['Payments received', money(sales - unpaid), ''], ['Unpaid utang', money(unpaid), 'unpaid'], ['Cost of goods', money(sales - profit), '']
   ];
   $('#ledger').innerHTML = `<div class="report-grid" aria-label="Sales summary">${metrics.map(([label, value, kind]) =>
     `<div class="report-metric ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join('')}</div>`;
@@ -1238,7 +1288,7 @@ function renderReports() {
   const tops = [...tally.entries()].sort((a, b) => b[1].q - a[1].q).slice(0, 8);
   $('#tops').innerHTML = tops.length ? `<div class="rows">${tops.map(([n, t]) => `<div class="rrow"><span>${esc(n)}</span><b>${t.q} sold · ${money(t.amt)}</b></div>`).join('')}</div>` : `<div class="empty">No sales in this period yet.</div>`;
     $('#salesList').innerHTML = history.length ? `<div class="rows">${history.slice(0, 100).map(s => `<div class="rrow"><div><b>${money(s.total)}</b>${isVoided(s) ? '<span class="pill">Voided</span>' : s.paid ? '' : '<span class="pill">Utang</span>'}${s.customer ? ` <span class="meta">${esc(s.customer)}</span>` : ''}
-      <div class="meta">${fmtDate(s.ts)} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}${isVoided(s) ? ` · Reason: ${esc(saleVoidReason(s))}` : ''}</div></div>
+      <div class="meta">${fmtDate(s.ts)} · ${esc(s.paymentMethod === 'ewallet' ? `E-wallet · ${walletProviders[s.paymentProvider]?.label || 'Wallet'}` : s.paymentMethod === 'utang' ? 'Utang' : 'Cash')} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}${isVoided(s) ? ` · Reason: ${esc(saleVoidReason(s))}` : ''}</div></div>
       ${isVoided(s) ? '' : `<button class="btn outline small" data-void="${s.id}">Void</button>`}</div>`).join('')}</div>${history.length > 100 ? `<p class="meta">Showing the latest 100. Export the CSV for everything.</p>` : ''}` : `<div class="empty">No sales in this period yet.</div>`;
   $('#storeInput').value = S.storeName || '';
   $('#whoami').textContent = user && user.email ? 'Signed in as ' + user.email : '';
@@ -1246,7 +1296,7 @@ function renderReports() {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-user-edit],[data-user-reset],[data-user-delete],[data-order-id],[data-order-payment],[data-act]');
+  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-user-edit],[data-user-reset],[data-user-delete],[data-order-id],[data-order-payment],[data-wallet-provider],[data-wallet-submit],[data-act]');
   if (!t) return;
   const d = t.dataset;
   if (d.add) return addToCart(d.add);
@@ -1270,7 +1320,10 @@ document.addEventListener('click', async e => {
   if (d.userEdit) return openUserEdit(d.userEdit);
   if (d.userReset) return openUserPasswordReset(d.userReset);
   if (d.orderId) return reviewCustomerOrder(d.orderId, d.orderStatus);
+  if (d.orderPayment === 'ewallet') return openEwalletPayment();
   if (d.orderPayment) return submitCustomerOrder(d.orderPayment);
+  if (d.walletProvider) return renderWalletProvider(d.walletProvider);
+  if (d.walletSubmit !== undefined) return submitCustomerOrder('ewallet', $('#walletProvider').value);
   if (d.userDelete) {
     const target = managedUsers.find(u => u.id === d.userDelete); if (!target || target.id === user.id) return;
     if (!await askConfirm({title: 'Delete user account?', message: `Permanently delete ${target.email || 'this account'}? This cannot be undone.`, confirmText: 'Delete user', danger: true})) return;
@@ -1321,7 +1374,7 @@ document.addEventListener('click', async e => {
     case 'template':
       download('products-template.csv', 'Product Name,Category,Purchase Price,Selling Price,Stock\nCoke Mismo 195ml,Soft Drinks,11,15,24\nSkyflakes 10s,Crackers,42,50,12\nOreo 29g,Biscuits,8,10,30\n'); break;
     case 'exportSales':
-      download(`sales-${stamp()}.csv`, ['Date,Customer,Items,Total,Profit,Status,Void reason'].concat(S.sales.map(s => [new Date(s.ts).toLocaleString('en-PH'), s.customer, s.items.map(i => i.qty + ' x ' + i.name).join('; '), s.total, s.profit, isVoided(s) ? 'Voided' : s.paid ? 'Paid' : 'Utang', saleVoidReason(s)].map(csvCell).join(','))).join('\n')); break;
+      download(`sales-${stamp()}.csv`, ['Date,Customer,Items,Total,Profit,Payment method,Payment provider,Status,Void reason'].concat(S.sales.map(s => [new Date(s.ts).toLocaleString('en-PH'), s.customer, s.items.map(i => i.qty + ' x ' + i.name).join('; '), s.total, s.profit, s.paymentMethod || (s.paid ? 'cash' : 'utang'), s.paymentProvider || '', isVoided(s) ? 'Voided' : s.paid ? 'Paid' : 'Utang', saleVoidReason(s)].map(csvCell).join(','))).join('\n')); break;
     case 'backup': download(`${(S.storeName || 'store').replace(/\W+/g, '-').toLowerCase()}-backup-${stamp()}.json`, JSON.stringify({app: 'vane-pos', version: 1, data: S}), 'application/json'); break;
     case 'restore': $('#restoreFile').click(); break;
     case 'wipe':
@@ -1704,7 +1757,9 @@ function renderOrders() {
     const itemList = (Array.isArray(order.items) ? order.items : []).map(item => `${Number(item.quantity)} × ${esc(item.name)}`).join('<br>');
     const requested = order.created_at ? new Date(order.created_at).toLocaleString() : '—';
     const status = ['pending', 'approved', 'rejected'].includes(order.status) ? order.status : 'pending';
-    const paymentMethod = order.payment_method === 'utang' ? 'Utang' : order.payment_method === 'cash' ? 'Cash' : 'Not selected';
+    const providerLabels = {metrobank: 'Metrobank', gcash: 'GCash', maribank: 'MariBank'};
+    const paymentMethod = order.payment_method === 'utang' ? 'Utang' : order.payment_method === 'cash' ? 'Cash'
+      : order.payment_method === 'ewallet' ? `E-wallet · ${providerLabels[order.ewallet_provider] || 'Unknown wallet'}` : 'Not selected';
     const actions = status === 'pending'
       ? `<div class="admin-row-actions"><button class="btn admin-primary small" data-order-id="${esc(order.id)}" data-order-status="approved">Confirm ${esc(paymentMethod)}</button><button class="btn admin-secondary small" data-order-id="${esc(order.id)}" data-order-status="rejected">Decline</button></div>`
       : '—';
@@ -1733,22 +1788,30 @@ async function reviewCustomerOrder(id, status) {
   if (!order || order.status !== 'pending' || !['approved', 'rejected'].includes(status)) return;
   const approved = status === 'approved';
   const paymentMethod = order.payment_method;
-  if (approved && !['cash', 'utang'].includes(paymentMethod)) {
+  if (approved && !['cash', 'utang', 'ewallet'].includes(paymentMethod)) {
     toast('This order has no valid payment choice. Decline it and ask the customer to place it again.', 'bad');
     return;
   }
+  const walletProviderLabels = {metrobank: 'Metrobank', gcash: 'GCash', maribank: 'MariBank'};
+  const providerLabel = walletProviderLabels[order.ewallet_provider] || '';
+  if (approved && paymentMethod === 'ewallet' && !providerLabel) {
+    toast('This E-wallet order has no valid payment provider. Decline it and ask the customer to try again.', 'bad');
+    return;
+  }
   if (!await askConfirm({
-    title: approved ? `Confirm ${paymentMethod} order?` : 'Decline this order?',
+    title: approved ? `Confirm ${paymentMethod === 'ewallet' ? `E-wallet · ${providerLabel}` : paymentMethod} order?` : 'Decline this order?',
     message: approved
-      ? `This will record a ${paymentMethod === 'cash' ? 'paid cash sale' : 'customer utang balance'} and reduce stock for the ordered products.`
+      ? paymentMethod === 'ewallet'
+        ? `Verify that the ${providerLabel} transfer was received. Confirming records it as paid and reduces stock.`
+        : `This will record a ${paymentMethod === 'cash' ? 'paid cash sale' : 'customer utang balance'} and reduce stock for the ordered products.`
       : 'This marks the request as declined without changing sales or stock.',
-    confirmText: approved ? `Confirm ${paymentMethod}` : 'Decline order',
+    confirmText: approved ? paymentMethod === 'ewallet' ? 'Verify & confirm paid' : `Confirm ${paymentMethod}` : 'Decline order',
     danger: !approved
   })) return;
   try {
     await callCustomerOrders({action: 'review_order', orderId: id, status, paymentMethod});
     await pullRemote();
-    toast(approved ? `${paymentMethod === 'cash' ? 'Cash sale' : 'Utang sale'} recorded and stock updated` : 'Order declined');
+    toast(approved ? `${paymentMethod === 'ewallet' ? `${providerLabel} payment verified` : paymentMethod === 'cash' ? 'Cash sale' : 'Utang sale'} recorded and stock updated` : 'Order declined');
     await loadOrders();
   } catch (err) {
     toast(err.message || 'Could not update the order.', 'bad');
@@ -1896,7 +1959,7 @@ function setMode(m) {
   ['#l-pw', '#l-pw2'].forEach(s => { $(s).value = ''; $(s).type = 'password'; });
   $('#showPasswordText').textContent = 'Show'; $('#l-show').setAttribute('aria-pressed', 'false'); setMsg('');
 }
-const redirectUrl = () => location.origin + location.pathname.replace(/index\.html$/, '');
+const AUTH_REDIRECT_URL = 'https://vane-sari2-store.vercel.app/';
 function authErr(err) {
   const m = String((err && err.message) || '');
   if (/invalid login/i.test(m)) return 'Wrong email or password.';
@@ -1947,7 +2010,7 @@ $('#loginForm').addEventListener('submit', async e => {
         email,
         password: pw,
         options: {
-          emailRedirectTo: redirectUrl(),
+          emailRedirectTo: AUTH_REDIRECT_URL,
           data: {first_name: firstName, last_name: lastName, display_name: `${firstName} ${lastName}`, role: 'customer'}
         }
       });
@@ -1956,7 +2019,7 @@ $('#loginForm').addEventListener('submit', async e => {
       else if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) setMsg('That email already has an account. Sign in, or use Forgot password.');
       else { setMode('signin'); $('#l-email').value = email; setMsg('Account created. Open the confirmation link we emailed you, then sign in.', 'info'); }
     } else if (mode === 'forgot') {
-      const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: redirectUrl()});
+      const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: AUTH_REDIRECT_URL});
       if (error) throw error;
       setMode('signin'); $('#l-email').value = email;
       setMsg('If that email has an account, a reset link is on its way. Check your inbox and spam folder.', 'info');
@@ -2015,10 +2078,12 @@ const toProdRow = p => ({id: String(p.id), user_id: user.id, name: p.name, categ
 const fromProdRow = r => ({id: r.id, name: r.name, category: r.category, cost: Number(r.cost), price: Number(r.price), stock: Number(r.stock), low: Number(r.low)});
 const toSaleRow = s => ({id: String(s.id), user_id: user.id, ts: new Date(s.ts).toISOString(), items: s.items || [],
   total: +s.total || 0, profit: +s.profit || 0, customer: s.customer || '', paid: !!s.paid,
-  paid_at: s.paidAt ? new Date(s.paidAt).toISOString() : null, cash_received: +s.cash || 0, change_given: +s.change || 0});
+  paid_at: s.paidAt ? new Date(s.paidAt).toISOString() : null, cash_received: +s.cash || 0, change_given: +s.change || 0,
+  payment_method: s.paymentMethod || (s.paid ? 'cash' : 'utang'), payment_provider: s.paymentProvider || null});
 const fromSaleRow = r => ({id: r.id, ts: +new Date(r.ts), items: r.items || [], total: Number(r.total), profit: Number(r.profit),
   customer: r.customer || '', paid: !!r.paid, paidAt: r.paid_at ? +new Date(r.paid_at) : null,
-  cash: Number(r.cash_received), change: Number(r.change_given)});
+  cash: Number(r.cash_received), change: Number(r.change_given), paymentMethod: r.payment_method || (r.paid ? 'cash' : 'utang'),
+  paymentProvider: r.payment_provider || null});
 const toAuditRow = e => ({id: String(e.id), user_id: user.id, type: e.type, entity_id: String(e.entityId),
   ts: new Date(e.ts).toISOString(), payload: e.payload || {}});
 const fromAuditRow = r => ({id: r.id, type: r.type, entityId: r.entity_id, ts: +new Date(r.ts), payload: r.payload || {}});

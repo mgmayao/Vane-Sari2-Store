@@ -112,7 +112,16 @@ Deno.serve(async request => {
 
     if (body.action === 'place_order') {
       const paymentMethod = body.paymentMethod;
-      if (paymentMethod !== 'cash' && paymentMethod !== 'utang') throw new HttpError(400, 'Choose Cash or Utang before placing the order.');
+      const walletProvider = body.walletProvider;
+      if (!['cash', 'utang', 'ewallet'].includes(String(paymentMethod))) {
+        throw new HttpError(400, 'Choose Cash, Utang, or E-wallet before placing the order.');
+      }
+      if (paymentMethod === 'ewallet' && !['metrobank', 'gcash', 'maribank'].includes(String(walletProvider))) {
+        throw new HttpError(400, 'Choose Metrobank, GCash, or MariBank for E-wallet payment.');
+      }
+      if (paymentMethod !== 'ewallet' && walletProvider !== undefined) {
+        throw new HttpError(400, 'An E-wallet provider can only be selected for E-wallet payment.');
+      }
       if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 50) {
         throw new HttpError(400, 'Choose between 1 and 50 products.');
       }
@@ -168,6 +177,7 @@ Deno.serve(async request => {
         items,
         total,
         payment_method: paymentMethod,
+        ewallet_provider: paymentMethod === 'ewallet' ? walletProvider : null,
         status: 'pending'
       }).select('id,total,items').single();
       if (orderError) throw new HttpError(502, 'Could not save the order request.');
@@ -202,7 +212,7 @@ Deno.serve(async request => {
     if (body.action === 'list_orders') {
       if (!callerIsAdmin) throw new HttpError(403, 'Only administrators can review customer orders.');
       const {data, error} = await admin.from('customer_orders')
-        .select('id,customer_email,customer_name,items,total,status,payment_method,sale_id,created_at')
+        .select('id,customer_email,customer_name,items,total,status,payment_method,ewallet_provider,sale_id,created_at')
         .order('created_at', {ascending: false})
         .limit(500);
       if (error) throw new HttpError(502, 'Could not load customer orders.');
@@ -218,7 +228,7 @@ Deno.serve(async request => {
       }
       if (status !== 'approved' && status !== 'rejected') throw new HttpError(400, 'Choose approve or decline.');
       if (status === 'approved') {
-        if (body.paymentMethod !== 'cash' && body.paymentMethod !== 'utang') {
+        if (!['cash', 'utang', 'ewallet'].includes(String(body.paymentMethod))) {
           throw new HttpError(400, 'This order has no valid payment choice.');
         }
         const {data, error} = await admin.rpc('finalize_customer_order', {

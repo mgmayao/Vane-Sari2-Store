@@ -6,12 +6,14 @@ create table if not exists public.customer_orders (
   items jsonb not null check (jsonb_typeof(items) = 'array'),
   total numeric(12, 2) not null check (total >= 0),
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  ewallet_provider text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.customer_orders
   add column if not exists payment_method text,
+  add column if not exists ewallet_provider text,
   add column if not exists sale_id text;
 
 alter table public.customer_orders
@@ -19,7 +21,35 @@ alter table public.customer_orders
 
 alter table public.customer_orders
   add constraint customer_orders_payment_method_check
-  check (payment_method is null or payment_method in ('cash', 'utang'));
+  check (payment_method is null or payment_method in ('cash', 'utang', 'ewallet'));
+
+alter table public.customer_orders
+  drop constraint if exists customer_orders_ewallet_provider_check;
+
+alter table public.customer_orders
+  add constraint customer_orders_ewallet_provider_check
+  check (
+    payment_method is distinct from 'ewallet'
+    or (ewallet_provider is not null and ewallet_provider in ('metrobank', 'gcash', 'maribank'))
+  );
+
+alter table public.sales
+  add column if not exists payment_method text,
+  add column if not exists payment_provider text;
+
+alter table public.sales
+  drop constraint if exists sales_payment_method_check;
+
+alter table public.sales
+  add constraint sales_payment_method_check
+  check (payment_method is null or payment_method in ('cash', 'utang', 'ewallet'));
+
+alter table public.sales
+  drop constraint if exists sales_payment_provider_check;
+
+alter table public.sales
+  add constraint sales_payment_provider_check
+  check (payment_provider is null or payment_provider in ('metrobank', 'gcash', 'maribank'));
 
 create index if not exists customer_orders_status_created_idx
   on public.customer_orders (status, created_at desc);
@@ -72,8 +102,8 @@ declare
   v_sale_id text;
   v_now timestamptz := now();
 begin
-  if p_payment_method not in ('cash', 'utang') then
-    raise exception 'Choose Cash or Utang before confirming the order.';
+  if p_payment_method not in ('cash', 'utang', 'ewallet') then
+    raise exception 'Choose Cash, Utang, or E-wallet before confirming the order.';
   end if;
 
   select * into v_order
@@ -94,6 +124,10 @@ begin
   end if;
   if v_order.status <> 'pending' then
     raise exception 'Order has already been reviewed.';
+  end if;
+  if p_payment_method = 'ewallet'
+    and (v_order.ewallet_provider is null or v_order.ewallet_provider not in ('metrobank', 'gcash', 'maribank')) then
+    raise exception 'This E-wallet order has no valid payment provider.';
   end if;
 
   select id into v_owner_id
@@ -154,7 +188,8 @@ begin
   end loop;
 
   insert into public.sales (
-    id, user_id, ts, items, total, profit, customer, paid, paid_at, cash_received, change_given
+    id, user_id, ts, items, total, profit, customer, paid, paid_at, cash_received, change_given,
+    payment_method, payment_provider
   ) values (
     v_sale_id,
     v_owner_id,
@@ -163,10 +198,12 @@ begin
     v_total,
     v_profit,
     v_order.customer_name,
-    p_payment_method = 'cash',
-    case when p_payment_method = 'cash' then v_now else null end,
+    p_payment_method in ('cash', 'ewallet'),
+    case when p_payment_method in ('cash', 'ewallet') then v_now else null end,
     case when p_payment_method = 'cash' then v_total else 0 end,
-    0
+    0,
+    p_payment_method,
+    case when p_payment_method = 'ewallet' then v_order.ewallet_provider else null end
   );
 
   update public.customer_orders
