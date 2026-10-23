@@ -184,10 +184,13 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .customer-purchases-page .customer-purchases-head h2{margin:0}
 .customer-purchases-page .customer-purchases-head p{margin:4px 0 0}
 .customer-purchases-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.pending-review-total{margin:12px 0;padding:14px 16px;background:var(--wash);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r)}
-.pending-review-total span{display:block;color:var(--ink2);font-size:.85rem;font-weight:600}
-.pending-review-total strong{display:block;margin-top:3px;font-size:1.35rem;font-variant-numeric:tabular-nums}
-.pending-review-total small{color:var(--ink2)}
+.purchase-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.purchase-summary-card{min-width:0;padding:12px 14px;background:var(--wash);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--r)}
+.purchase-summary-card span{display:block;color:var(--ink2);font-size:.82rem;font-weight:600}
+.purchase-summary-card strong{display:block;margin-top:4px;font-size:1.2rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.purchase-summary-card.pending{border-top-color:var(--bad)}
+.purchase-summary-card.pending strong{color:var(--bad)}
+@media(max-width:640px){.purchase-summary{grid-template-columns:repeat(4,minmax(148px,1fr));overflow-x:auto;padding-bottom:4px}}
 .customer-purchase{padding:12px 0;border-top:1px solid var(--line)}
 .customer-purchase:first-child{border-top:0}
 .customer-purchase-head,.customer-purchase-item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -554,7 +557,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   </section>
   <section id="view-purchases" class="view customer-purchases-page" hidden aria-label="My purchases">
     <div class="customer-purchases-head"><div><h2>My purchases</h2><p class="meta">Review your submitted orders and their status.</p></div><button class="btn outline small" id="refreshCustomerPurchases" type="button">Refresh</button></div>
-    <div id="pendingReviewTotal" class="pending-review-total" hidden aria-live="polite"></div>
+    <div id="purchaseSummary" class="purchase-summary" hidden aria-label="Purchase totals" aria-live="polite"></div>
     <p id="customerPurchasesStatus" class="meta" role="status" aria-live="polite">Loading your orders…</p>
     <div id="customerPurchasesList"></div>
   </section>
@@ -582,7 +585,11 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   <!-- UTANG -->
   <section id="view-utang" class="view" hidden>
     <h2>Utang</h2>
-    <p class="meta" style="margin:6px 0 0">Unpaid sales charged to a customer.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 0">
+      <p class="meta" style="margin:0">Confirmed unpaid sales and customer Utang requests awaiting confirmation.</p>
+      <button class="btn outline small" data-act="refreshUtang">Refresh utang</button>
+    </div>
+    <p id="utangStatus" class="meta" role="status" aria-live="polite"></p>
     <div class="search" style="margin-top:12px"><input id="uq" type="search" placeholder="Search customer name" autocomplete="off" aria-label="Search customer name"></div>
     <div id="utangSummary"></div>
     <div id="debtors"></div>
@@ -815,7 +822,7 @@ function setTab(t) {
   if (t === 'purchases') loadCustomerPurchases();
   if (t === 'dashboard' || t === 'admin') renderDashboard();
   if (t === 'products') renderProducts();
-  if (t === 'utang') renderUtang();
+  if (t === 'utang') { renderUtang(); loadOrders(); }
   if (t === 'reports') renderReports();
   if (t === 'admin' && userAdmin) loadUsers();
   if (t === 'users') loadUsers();
@@ -1262,27 +1269,52 @@ const stamp = () => new Date().toISOString().slice(0, 10);
 function renderUtang() {
   const groups = new Map();
   S.sales.filter(s => !s.paid && !isVoided(s)).forEach(s => {
-    const k = (s.customer || '?').toLowerCase();
-    if (!groups.has(k)) groups.set(k, {name: s.customer || 'Unknown', sales: []});
+    const name = String(s.customer || 'Unknown').trim() || 'Unknown', k = name.toLowerCase();
+    if (!groups.has(k)) groups.set(k, {name, sales: []});
     groups.get(k).sales.push(s);
   });
-  if (!groups.size) { $('#utangSummary').innerHTML = ''; $('#debtors').innerHTML = `<div class="empty" style="margin-top:12px"><strong>No unpaid utang</strong>Charge a sale to a customer with the Utang button on the Sell screen.</div>`; return; }
+  customerOrders.filter(order => order.status === 'pending' && order.payment_method === 'utang').forEach(order => {
+    const name = String(order.customer_name || 'Customer').trim() || 'Customer';
+    const k = name.toLowerCase();
+    if (!groups.has(k)) groups.set(k, {name, sales: [], pendingOrders: []});
+    const group = groups.get(k);
+    group.pendingOrders ||= [];
+    group.pendingOrders.push(order);
+  });
+  if (!groups.size) { $('#utangSummary').innerHTML = ''; $('#debtors').innerHTML = `<div class="empty" style="margin-top:12px"><strong>No unpaid utang</strong>Confirmed unpaid sales and pending customer Utang requests will appear here.</div>`; return; }
   const uq = (ui.uq || '').trim().toLowerCase();
   const list = [...groups.values()]
     .filter(g => !uq || g.name.toLowerCase().includes(uq))
-    .sort((a, b) => b.sales.reduce((x, s) => x + s.total, 0) - a.sales.reduce((x, s) => x + s.total, 0));
-  const grand = r2(list.reduce((a, g) => a + g.sales.reduce((x, s) => x + s.total, 0), 0));
-  const label = !uq ? `Total utang (${list.length} customer${list.length === 1 ? '' : 's'})`
-    : list.length === 1 ? `${esc(list[0].name)} owes` : `Total of ${list.length} match${list.length === 1 ? '' : 'es'}`;
+    .sort((a, b) => {
+      const amount = g => g.sales.reduce((sum, sale) => sum + Number(sale.total || 0), 0)
+        + (g.pendingOrders || []).reduce((sum, order) => sum + Number(order.total || 0), 0);
+      return amount(b) - amount(a);
+    });
+  const grandOwed = r2(list.reduce((sum, group) => sum + group.sales.reduce((total, sale) => total + Number(sale.total || 0), 0), 0));
+  const grandPending = r2(list.reduce((sum, group) => sum + (group.pendingOrders || []).reduce((total, order) => total + Number(order.total || 0), 0), 0));
+  const customersLabel = uq ? `${list.length} matching customer${list.length === 1 ? '' : 's'}` : `${list.length} customer${list.length === 1 ? '' : 's'}`;
   $('#utangSummary').innerHTML = list.length
-    ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:10px"><b>${label}</b><span class="owe">${money(grand)}</span></div>` : '';
+    ? `<div class="report-grid" style="margin-top:10px">
+        <div class="report-metric unpaid"><span>Confirmed unpaid · ${customersLabel}</span><strong>${money(grandOwed)}</strong></div>
+        <div class="report-metric"><span>Pending Utang requests · ${customersLabel}</span><strong>${money(grandPending)}</strong></div>
+      </div>` : '';
   if (!list.length) { $('#debtors').innerHTML = `<div class="empty" style="margin-top:12px"><strong>No customer found</strong>Try another name.</div>`; return; }
   $('#debtors').innerHTML = list.map(g => {
-    const owed = g.sales.reduce((a, s) => a + s.total, 0);
+    const owed = r2(g.sales.reduce((sum, sale) => sum + Number(sale.total || 0), 0));
+    const pendingOrders = g.pendingOrders || [];
     return `<div class="debtor"><header><h3>${esc(g.name)}</h3><span class="owe">${money(owed)}</span></header>
+      ${owed ? `<div class="meta">Confirmed unpaid balance</div>` : `<div class="meta">No confirmed unpaid balance yet</div>`}
       ${g.sales.map(s => `<div class="d-sale"><div><b>${money(s.total)}</b><div class="meta">${fmtDate(s.ts)} · ${esc(s.items.map(i => i.qty + ' × ' + i.name).join(', '))}</div></div>
-        <div style="display:flex;gap:8px"><button class="btn outline small" data-paid="${s.id}">Mark paid</button><button class="btn danger small" data-void="${s.id}">Void</button></div></div>`).join('')}
-      <div style="margin-top:10px"><button class="btn primary" data-paidall="${esc((g.name).toLowerCase())}">Collect all ${money(owed)}</button></div></div>`;
+        <div style="display:flex;gap:8px"><button class="btn outline small" data-paid="${esc(s.id)}">Mark paid</button><button class="btn danger small" data-void="${esc(s.id)}">Void</button></div></div>`).join('')}
+      ${owed ? `<div style="margin-top:10px"><button class="btn primary" data-paidall="${esc(g.name.toLowerCase())}">Collect all ${money(owed)}</button></div>` : ''}
+      ${pendingOrders.length ? `<div style="margin-top:14px"><b>Utang requests awaiting confirmation · ${money(pendingOrders.reduce((sum, order) => sum + Number(order.total || 0), 0))}</b></div>` : ''}
+      ${pendingOrders.map(order => {
+        const items = (Array.isArray(order.items) ? order.items : []).map(item => `${Number(item.quantity) || 0} × ${esc(item.name || 'Item')}`).join(', ');
+        const timestamp = Date.parse(order.created_at || '');
+        const requested = Number.isFinite(timestamp) ? fmtDate(timestamp) : 'Date unavailable';
+        return `<div class="d-sale"><div><b>${money(Number(order.total) || 0)}</b><div class="meta">${requested}${items ? ` · ${items}` : ''}</div><div class="meta">Awaiting confirmation</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary small" data-order-id="${esc(order.id)}" data-order-status="approved">Confirm Utang</button><button class="btn danger small" data-order-id="${esc(order.id)}" data-order-status="rejected">Decline</button></div></div>`;
+      }).join('')}</div>`;
   }).join('');
 }
 
@@ -1394,6 +1426,7 @@ document.addEventListener('click', async e => {
     case 'closeCart': closeCart(); break;
     case 'refreshUsers': loadUsers(); break;
     case 'refreshOrders': loadOrders(); break;
+    case 'refreshUtang': loadOrders(); break;
     case 'refreshCatalog': loadCustomerCatalog(); break;
     case 'adminMenu': {
       const shell = $('#adminShell'), open = !shell.classList.contains('drawer-open');
@@ -1560,11 +1593,18 @@ function renderCustomerPurchases() {
   const status = $('#customerPurchasesStatus');
   const list = $('#customerPurchasesList');
   const refresh = $('#refreshCustomerPurchases');
-  const pendingOrders = customerPurchases.filter(order => order.status === 'pending');
-  const pendingTotal = pendingOrders.reduce((total, order) => total + (Number(order.total) || 0), 0);
-  const pendingSummary = $('#pendingReviewTotal');
-  pendingSummary.hidden = !customerPurchasesLoaded;
-  pendingSummary.innerHTML = `<span>Total pending review</span><strong>${money(pendingTotal)}</strong><small>${pendingOrders.length} order${pendingOrders.length === 1 ? '' : 's'} awaiting review</small>`;
+  const summary = $('#purchaseSummary');
+  const confirmedOrders = customerPurchases.filter(order => order.status === 'approved');
+  const pendingUtangOrders = customerPurchases.filter(order =>
+    order.payment_method === 'utang' && order.status !== 'rejected' && order.paid !== true);
+  const sum = orders => orders.reduce((total, order) => total + (Number(order.total) || 0), 0);
+  summary.hidden = !customerPurchasesLoaded;
+  summary.innerHTML = [
+    ['Total purchase', sum(confirmedOrders), ''],
+    ['Total pending utang', sum(pendingUtangOrders), 'pending'],
+    ['Total purchase in Cash', sum(confirmedOrders.filter(order => order.payment_method === 'cash')), ''],
+    ['Total purchase in E-wallet', sum(confirmedOrders.filter(order => order.payment_method === 'ewallet')), '']
+  ].map(([label, total, kind]) => `<div class="purchase-summary-card ${kind}"><span>${label}</span><strong>${money(total)}</strong></div>`).join('');
   refresh.disabled = customerPurchasesLoading;
   refresh.textContent = customerPurchasesLoading ? 'Loading…' : 'Refresh';
   if (customerPurchasesLoading) {
@@ -1638,9 +1678,10 @@ function refreshUtangPushButton() {
   const button = $('#enableUtangPush');
   if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
   if (Notification.permission === 'denied') {
-    button.textContent = 'Allow reminders in browser settings';
+    button.hidden = true;
     return;
   }
+  button.hidden = false;
   navigator.serviceWorker.ready.then(registration => registration.pushManager.getSubscription()).then(subscription => {
     if (subscription && isCustomerOrderMode()) button.textContent = 'Bill reminders enabled';
   }).catch(err => console.warn('Could not check push reminder status:', err));
@@ -1902,6 +1943,7 @@ async function loadOrders() {
   if (!canOpenAdminDashboard()) return;
   const callerId = user && user.id;
   if (!callerId) return;
+  if (ui.tab === 'utang') $('#utangStatus').textContent = 'Loading customer Utang requests…';
   $('#ordersStatus').textContent = 'Loading orders…';
   $('#adminOrderList').innerHTML = '';
   try {
@@ -1909,10 +1951,19 @@ async function loadOrders() {
     if (!user || user.id !== callerId) return;
     customerOrders = Array.isArray(result.orders) ? result.orders : [];
     renderOrders();
+    if (ui.tab === 'utang') {
+      const pendingUtangCount = customerOrders.filter(order => order.status === 'pending' && order.payment_method === 'utang').length;
+      $('#utangStatus').textContent = `${pendingUtangCount} pending Utang request${pendingUtangCount === 1 ? '' : 's'}.`;
+      renderUtang();
+    }
   } catch (err) {
     if (!user || user.id !== callerId) return;
     $('#ordersStatus').textContent = 'Could not load orders.';
     $('#adminOrderList').innerHTML = `<div class="admin-empty">Could not load order requests: ${esc(err.message || 'Try again.')}</div>`;
+    if (ui.tab === 'utang') {
+      $('#utangStatus').textContent = `Could not load customer Utang requests: ${err.message || 'Try again.'}`;
+      renderUtang();
+    }
   }
 }
 async function reviewCustomerOrder(id, status) {
