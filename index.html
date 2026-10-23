@@ -200,6 +200,16 @@ main{padding:16px;max-width:1240px;margin:0 auto}
 .customer-purchase-status[data-status="pending"]{color:#b7791f}
 .customer-purchase-status[data-status="approved"]{color:var(--go)}
 .customer-purchase-status[data-status="rejected"]{color:var(--bad)}
+.wishlist-form{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:10px;align-items:end;margin:16px 0}
+.wishlist-form label{margin:0}
+.wishlist-form select,.wishlist-form input{margin-top:5px}
+.wishlist-entry{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.wishlist-entry:first-child{border-top:0}
+.wishlist-status{font-size:.82rem;font-weight:700}
+.wishlist-status[data-status="pending"]{color:#b7791f}
+.wishlist-status[data-status="granted"]{color:var(--go)}
+.wishlist-status[data-status="declined"]{color:var(--bad)}
+@media(max-width:560px){.wishlist-form{grid-template-columns:minmax(0,1fr) 90px}.wishlist-form button{grid-column:1/-1}}
 .clear-wrap{text-align:center;margin-top:6px}
 .cartbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:32;
   min-height:56px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:space-between;
@@ -497,6 +507,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
   <nav class="tabs" id="tabs" aria-label="Main">
     <button data-tab="sell" aria-current="page"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Sell</button>
     <button data-tab="purchases" id="customerPurchasesTab" hidden><svg viewBox="0 0 24 24"><path d="M4 5h16v15H4z"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h7"/></svg>My purchases</button>
+    <button data-tab="wishlist" id="customerWishlistTab" hidden><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>Wishlist</button>
   </nav>
   <button class="btn outline small" id="enableUtangPush" type="button" hidden>Enable bill reminders</button>
   <button class="btn small admin-entry" data-tab="admin" id="openAdminDashboard" hidden>Admin Dashboard</button>
@@ -560,6 +571,17 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
     <div id="purchaseSummary" class="purchase-summary" hidden aria-label="Purchase totals" aria-live="polite"></div>
     <p id="customerPurchasesStatus" class="meta" role="status" aria-live="polite">Loading your orders…</p>
     <div id="customerPurchasesList"></div>
+  </section>
+  <section id="view-customer-wishlist" class="view customer-purchases-page" hidden aria-label="Wishlist">
+    <div class="customer-purchases-head"><div><h2>Wishlist</h2><p class="meta">Request products you would like the store to have.</p></div><button class="btn outline small" id="refreshCustomerWishlist" type="button">Refresh</button></div>
+    <form id="customerWishlistForm" class="wishlist-form">
+      <label for="wishlistProduct">Product<select id="wishlistProduct" required><option value="">Loading products…</option></select></label>
+      <label for="wishlistQuantity">Quantity<input id="wishlistQuantity" type="number" min="1" max="100" value="1" required></label>
+      <button class="btn primary" id="addWishlistItem" type="submit">Add to wishlist</button>
+    </form>
+    <p id="wishlistCatalogStatus" class="meta" role="status" aria-live="polite"></p>
+    <p id="customerWishlistStatus" class="meta" role="status" aria-live="polite">Loading your wishlist…</p>
+    <div id="customerWishlistList"></div>
   </section>
 
   <!-- PRODUCTS -->
@@ -631,6 +653,7 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
           <button class="active" data-tab="admin"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg><span class="admin-nav-text">Admin dashboard</span></button>
           <button data-tab="products"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg><span class="admin-nav-text">Products</span></button>
           <button data-tab="utang"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="admin-nav-text">Utang</span></button>
+          <button data-tab="wishlist" id="adminWishlistLink" hidden><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="admin-nav-text">Wishlist</span><span id="adminWishlistCount" class="admin-nav-badge"></span></button>
           <button data-tab="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="admin-nav-text">Reports</span></button>
           <button data-tab="orders" id="adminOrdersLink" hidden><svg viewBox="0 0 24 24"><path d="M5 4h14l1 16H4L5 4Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span class="admin-nav-text">Orders</span><span id="adminOrderCount" class="admin-nav-badge"></span></button>
           <button data-tab="users" id="adminUsersLink" hidden><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="admin-nav-text">Users</span><span id="adminUserCount" class="admin-nav-badge"></span></button>
@@ -676,6 +699,12 @@ dialog::backdrop{background:rgba(21,40,59,.55)}
             <div class="admin-page-actions"><button class="btn admin-secondary small" data-act="refreshOrders">Refresh orders</button></div></div>
           <article class="admin-card"><header class="admin-card-head"><h3>ORDER REQUESTS</h3><span id="ordersStatus" role="status" aria-live="polite">Loading orders…</span></header>
             <div id="adminOrderList" class="admin-table-wrap"></div></article>
+        </section>
+        <section id="view-admin-wishlist" class="view" hidden>
+          <div class="admin-page-head"><div><h2>Customer wishlist</h2><p>Review product requests and mark each one granted or declined.</p></div>
+            <div class="admin-page-actions"><button class="btn outline small" data-act="refreshWishlist">Refresh wishlist</button></div></div>
+          <p id="adminWishlistStatus" class="meta" role="status" aria-live="polite"></p>
+          <div id="adminWishlistList"></div>
         </section>
         <div id="adminModules"></div>
       </div>
@@ -796,15 +825,18 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 /* ---------- tabs ---------- */
 function setTab(t) {
   if (t === 'purchases' && !isCustomerOrderMode()) { toast('Purchase history is available only to customer accounts.', 'bad'); return; }
-  if (!['sell', 'purchases'].includes(t) && !canOpenAdminDashboard()) { toast('The admin dashboard is available only to administrator accounts.', 'bad'); return; }
-  if (!['sell', 'purchases', 'admin', 'dashboard', 'products', 'utang', 'reports', 'orders', 'users'].includes(t)) return;
+  if (t === 'wishlist' && !isCustomerOrderMode() && !canOpenAdminDashboard()) { toast('Wishlist is available only to customer or administrator accounts.', 'bad'); return; }
+  if (!['sell', 'purchases', 'wishlist'].includes(t) && !canOpenAdminDashboard()) { toast('The admin dashboard is available only to administrator accounts.', 'bad'); return; }
+  if (!['sell', 'purchases', 'wishlist', 'admin', 'dashboard', 'products', 'utang', 'reports', 'orders', 'users'].includes(t)) return;
   ui.tab = t;
-  const inAdmin = !['sell', 'purchases'].includes(t);
+  const inAdmin = !['sell', 'purchases'].includes(t) && !(t === 'wishlist' && isCustomerOrderMode());
   $('#view-sell').hidden = t !== 'sell';
   $('#view-purchases').hidden = t !== 'purchases';
+  $('#view-customer-wishlist').hidden = t !== 'wishlist' || inAdmin;
   $('#adminShell').hidden = !inAdmin;
-  const activeView = t === 'admin' ? 'dashboard' : t;
+  const activeView = t === 'admin' ? 'dashboard' : t === 'wishlist' ? 'view-admin-wishlist' : t;
   $$('#adminModules .view').forEach(v => { v.hidden = v.id !== 'view-' + activeView; });
+  $('#view-admin-wishlist').hidden = t !== 'wishlist' || !inAdmin;
   document.body.classList.toggle('admin-mode', inAdmin);
   if (inAdmin) updateAdminTheme();
   else document.body.classList.remove('admin-dark');
@@ -820,6 +852,8 @@ function setTab(t) {
   closeCart();
   if (t === 'sell') { renderCats(); renderGrid(); renderCart(); }
   if (t === 'purchases') loadCustomerPurchases();
+  if (t === 'wishlist' && isCustomerOrderMode()) { loadCustomerWishlistCatalog(); loadCustomerWishlist(); }
+  if (t === 'wishlist' && inAdmin) loadAdminWishlist();
   if (t === 'dashboard' || t === 'admin') renderDashboard();
   if (t === 'products') renderProducts();
   if (t === 'utang') { renderUtang(); loadOrders(); }
@@ -1373,7 +1407,7 @@ function renderReports() {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-user-edit],[data-user-reset],[data-user-delete],[data-order-id],[data-order-payment],[data-wallet-provider],[data-wallet-submit],[data-act]');
+  const t = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-tab],[data-quick],[data-edit],[data-restock],[data-pf],[data-range],[data-paid],[data-paidall],[data-void],[data-del],[data-user-edit],[data-user-reset],[data-user-delete],[data-order-id],[data-order-payment],[data-wallet-provider],[data-wallet-submit],[data-wishlist-review],[data-act]');
   if (!t) return;
   const d = t.dataset;
   if (d.add) return addToCart(d.add);
@@ -1397,6 +1431,7 @@ document.addEventListener('click', async e => {
   if (d.userEdit) return openUserEdit(d.userEdit);
   if (d.userReset) return openUserPasswordReset(d.userReset);
   if (d.orderId) return reviewCustomerOrder(d.orderId, d.orderStatus);
+  if (d.wishlistReview) return reviewWishlistItem(d.wishlistReview, d.wishlistStatus);
   if (d.orderPayment === 'ewallet') return openEwalletPayment();
   if (d.orderPayment) return submitCustomerOrder(d.orderPayment);
   if (d.walletProvider) return renderWalletProvider(d.walletProvider);
@@ -1427,6 +1462,7 @@ document.addEventListener('click', async e => {
     case 'refreshUsers': loadUsers(); break;
     case 'refreshOrders': loadOrders(); break;
     case 'refreshUtang': loadOrders(); break;
+    case 'refreshWishlist': loadAdminWishlist(); break;
     case 'refreshCatalog': loadCustomerCatalog(); break;
     case 'adminMenu': {
       const shell = $('#adminShell'), open = !shell.classList.contains('drawer-open');
@@ -1477,6 +1513,8 @@ $('#btnClear').addEventListener('click', async () => {
 });
 $('#cartbar').addEventListener('click', openCart);
 $('#scrim').addEventListener('click', closeCart);
+$('#customerWishlistForm').addEventListener('submit', addCustomerWishlistItem);
+$('#refreshCustomerWishlist').addEventListener('click', () => { loadCustomerWishlistCatalog(); loadCustomerWishlist(); });
 $('#storeInput').addEventListener('change', e => { S.storeName = e.target.value.trim() || 'My Store'; save(); renderHeader(); });
 $('#importFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleImport(f); });
 $('#restoreFile').addEventListener('change', async e => {
@@ -1507,6 +1545,8 @@ keepLoggedIn.addEventListener('change', () => {
 });
 let sb = null, user = null, userAdmin = false, managedUsers = [], customerOrders = [];
 let customerPurchases = [], customerPurchasesLoading = false, customerPurchasesError = '', customerPurchasesOwnerId = '', customerPurchasesLoaded = false;
+let wishlistProducts = [], customerWishlist = [], adminWishlist = [];
+let customerWishlistOwnerId = '', customerWishlistLoading = false, customerWishlistSaving = false, customerWishlistError = '';
 let customerUnpaidUtangs = [], lastCustomerUtangCheckDate = '', lastCustomerUtangReminderKey = '';
 const PUSH_PUBLIC_KEY = 'BP2OAdL3tY4FqsmgAVby90qjezAzFPOM2uuKqLyE5603AbEbmmjS_mp7YodV4-CYIUeG1vmecaOqOFWTF0_fjVo';
 const cfgUrl = () => String(window.SUPABASE_URL || '').trim();
@@ -1526,13 +1566,15 @@ function setUserAdmin(value) {
   $('#todayLine').hidden = isCustomerOrderMode();
   $('#enableUtangPush').hidden = !isCustomerOrderMode();
   $('#customerPurchasesTab').hidden = !isCustomerOrderMode();
+  $('#customerWishlistTab').hidden = !isCustomerOrderMode();
   if (isCustomerOrderMode()) refreshUtangPushButton();
   $('#openAdminDashboard').hidden = !canOpenDashboard;
   $('#openUserAdmin').hidden = !canOpenDashboard;
   $('#adminOrdersLink').hidden = !canOpenDashboard;
+  $('#adminWishlistLink').hidden = !canOpenDashboard;
   $('#adminUsersLink').hidden = !canOpenDashboard;
   $$('[data-admin-only]').forEach(el => { el.hidden = !userAdmin; });
-  if (!canOpenDashboard && ui.tab !== 'sell') setTab('sell');
+  if (!canOpenDashboard && !['sell', 'wishlist'].includes(ui.tab)) setTab('sell');
   renderCats(); renderGrid(); renderCart();
 }
 function updateAdminTheme(enabled) {
@@ -1667,6 +1709,164 @@ async function loadCustomerPurchases() {
       customerPurchasesLoading = false;
       renderCustomerPurchases();
     }
+  }
+}
+function renderWishlistProducts() {
+  const select = $('#wishlistProduct');
+  select.innerHTML = `<option value="">Choose a product…</option>${wishlistProducts.map(product =>
+    `<option value="${esc(product.id)}">${esc(product.name)}${Number(product.stock) > 0 ? ` · ${Number(product.stock)} in stock` : ' · currently out of stock'}</option>`
+  ).join('')}`;
+  $('#addWishlistItem').disabled = customerWishlistSaving || !wishlistProducts.length;
+}
+function wishlistStatusLabel(status) {
+  return status === 'granted' ? 'Granted' : status === 'declined' ? 'Declined' : 'Pending';
+}
+function renderCustomerWishlist() {
+  const status = $('#customerWishlistStatus');
+  const list = $('#customerWishlistList');
+  const refresh = $('#refreshCustomerWishlist');
+  refresh.disabled = customerWishlistLoading || customerWishlistSaving;
+  refresh.textContent = customerWishlistLoading ? 'Loading…' : 'Refresh';
+  $('#addWishlistItem').disabled = customerWishlistSaving || !wishlistProducts.length;
+  if (customerWishlistLoading) {
+    status.textContent = 'Loading your wishlist…';
+  } else if (customerWishlistError) {
+    status.textContent = customerWishlistError;
+  } else if (!navigator.onLine && !customerWishlist.length) {
+    status.textContent = 'Connect to the internet to load your wishlist.';
+  } else {
+    status.textContent = customerWishlist.length
+      ? `${customerWishlist.length} wishlist request${customerWishlist.length === 1 ? '' : 's'}`
+      : 'No wishlist requests yet. Add a product you would like the store to have.';
+  }
+  list.innerHTML = customerWishlist.map(item => `<div class="wishlist-entry">
+    <div><strong>${esc(item.product_name)}</strong><div class="meta">Quantity: ${Number(item.quantity) || 1} · ${esc(item.category || 'Product')} · ${Number.isFinite(Date.parse(item.created_at || '')) ? fmtDate(Date.parse(item.created_at)) : 'Date unavailable'}</div></div>
+    <span class="wishlist-status" data-status="${esc(item.status)}">${wishlistStatusLabel(item.status)}</span>
+  </div>`).join('');
+}
+async function loadCustomerWishlistCatalog() {
+  const id = user && user.id;
+  if (!id || !isCustomerOrderMode() || !navigator.onLine) {
+    renderWishlistProducts();
+    $('#wishlistCatalogStatus').textContent = navigator.onLine ? '' : 'Connect to the internet to browse products for your wishlist.';
+    return;
+  }
+  $('#wishlistCatalogStatus').textContent = 'Loading products…';
+  try {
+    const result = await callCustomerOrders({action: 'wishlist_catalog'});
+    if (!user || user.id !== id || !isCustomerOrderMode()) return;
+    wishlistProducts = Array.isArray(result.products) ? result.products : [];
+    renderWishlistProducts();
+    $('#wishlistCatalogStatus').textContent = wishlistProducts.length ? `${wishlistProducts.length} products available to request.` : 'No products are available in the store catalog.';
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    wishlistProducts = [];
+    renderWishlistProducts();
+    $('#wishlistCatalogStatus').textContent = err.message || 'Could not load products for your wishlist.';
+  }
+}
+async function loadCustomerWishlist() {
+  const id = user && user.id;
+  if (!id || !isCustomerOrderMode()) return;
+  if (customerWishlistOwnerId !== id) {
+    customerWishlistOwnerId = id;
+    customerWishlist = [];
+    customerWishlistError = '';
+  }
+  if (!navigator.onLine) {
+    customerWishlistLoading = false;
+    renderCustomerWishlist();
+    return;
+  }
+  customerWishlistLoading = true;
+  renderCustomerWishlist();
+  try {
+    const result = await callCustomerOrders({action: 'my_wishlist'});
+    if (!user || user.id !== id || !isCustomerOrderMode()) return;
+    customerWishlist = Array.isArray(result.items) ? result.items : [];
+    customerWishlistError = '';
+  } catch (err) {
+    if (!user || user.id !== id) return;
+    customerWishlistError = err.message || 'Could not load your wishlist.';
+    console.warn('Customer wishlist load failed:', err);
+  } finally {
+    if (user && user.id === id) {
+      customerWishlistLoading = false;
+      renderCustomerWishlist();
+    }
+  }
+}
+async function addCustomerWishlistItem(event) {
+  event.preventDefault();
+  if (!isCustomerOrderMode() || !user || customerWishlistSaving) return;
+  const productId = $('#wishlistProduct').value;
+  const quantity = Number($('#wishlistQuantity').value);
+  if (!productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+    toast('Choose a product and enter a quantity between 1 and 100.', 'bad');
+    return;
+  }
+  customerWishlistSaving = true;
+  renderCustomerWishlist();
+  try {
+    await callCustomerOrders({action: 'add_wishlist', productId, quantity});
+    await loadCustomerWishlist();
+    $('#wishlistProduct').value = '';
+    $('#wishlistQuantity').value = '1';
+    toast('Product added to your wishlist.');
+  } catch (err) {
+    toast(err.message || 'Could not add this product to your wishlist.', 'bad');
+  } finally {
+    customerWishlistSaving = false;
+    renderCustomerWishlist();
+  }
+}
+function renderAdminWishlist() {
+  const pendingCount = adminWishlist.filter(item => item.status === 'pending').length;
+  $('#adminWishlistCount').textContent = pendingCount ? String(pendingCount) : '';
+  $('#adminWishlistStatus').textContent = `${adminWishlist.length} request${adminWishlist.length === 1 ? '' : 's'} · ${pendingCount} pending`;
+  $('#adminWishlistList').innerHTML = adminWishlist.length ? `<div class="rows">${adminWishlist.map(item => {
+    const date = Date.parse(item.created_at || '');
+    const dateLabel = Number.isFinite(date) ? fmtDate(date) : 'Date unavailable';
+    const status = wishlistStatusLabel(item.status);
+    const actions = item.status === 'pending'
+      ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary small" data-wishlist-review="${esc(item.id)}" data-wishlist-status="granted">Grant</button><button class="btn danger small" data-wishlist-review="${esc(item.id)}" data-wishlist-status="declined">Decline</button></div>`
+      : `<span class="wishlist-status" data-status="${esc(item.status)}">${status}</span>`;
+    return `<div class="wishlist-entry"><div><strong>${esc(item.product_name)}</strong><div class="meta">${esc(item.customer_name || 'Customer')} · ${esc(item.customer_email || '')}</div><div class="meta">Quantity: ${Number(item.quantity) || 1} · ${esc(item.category || 'Product')} · ${dateLabel}</div></div>${actions}</div>`;
+  }).join('')}</div>` : `<div class="empty"><strong>No wishlist requests</strong>Customer product requests will appear here.</div>`;
+}
+async function loadAdminWishlist() {
+  if (!canOpenAdminDashboard() || !user) return;
+  const callerId = user.id;
+  $('#adminWishlistStatus').textContent = 'Loading wishlist requests…';
+  $('#adminWishlistList').innerHTML = '';
+  try {
+    const result = await callCustomerOrders({action: 'list_wishlist'});
+    if (!user || user.id !== callerId) return;
+    adminWishlist = Array.isArray(result.items) ? result.items : [];
+    renderAdminWishlist();
+  } catch (err) {
+    if (!user || user.id !== callerId) return;
+    $('#adminWishlistStatus').textContent = `Could not load wishlist requests: ${err.message || 'Try again.'}`;
+    $('#adminWishlistList').innerHTML = `<div class="empty">Could not load wishlist requests.</div>`;
+  }
+}
+async function reviewWishlistItem(id, status) {
+  if (!canOpenAdminDashboard() || !['granted', 'declined'].includes(status)) return;
+  const item = adminWishlist.find(request => request.id === id && request.status === 'pending');
+  if (!item) return;
+  const granted = status === 'granted';
+  if (!await askConfirm({
+    title: `${granted ? 'Grant' : 'Decline'} wishlist request?`,
+    message: `${granted ? 'Mark' : 'Decline'} ${item.product_name} (${Number(item.quantity) || 1}) for ${item.customer_name || 'this customer'}?`,
+    confirmText: granted ? 'Grant request' : 'Decline request',
+    danger: !granted
+  })) return;
+  try {
+    await callCustomerOrders({action: 'review_wishlist', itemId: id, status});
+    toast(granted ? 'Wishlist request granted.' : 'Wishlist request declined.');
+    await loadAdminWishlist();
+  } catch (err) {
+    toast(err.message || 'Could not update this wishlist request.', 'bad');
   }
 }
 function vapidKeyBytes(key) {
@@ -2079,6 +2279,8 @@ function setMsg(text, kind) {
 }
 function showLogin(msg, kind, m) {
   user = null; customerCatalog = []; customerCatalogReady = false; customerCatalogError = ''; customerOrders = [];
+  wishlistProducts = []; customerWishlist = []; adminWishlist = []; customerWishlistOwnerId = '';
+  customerWishlistError = '';
   customerUnpaidUtangs = []; lastCustomerUtangCheckDate = ''; lastCustomerUtangReminderKey = '';
   setUserAdmin(false); managedUsers = []; syncReset(); cart = {}; closeCart(); if (dlg.open) dlg.close();
   $('#cash').value = ''; $('#customer').value = '';
@@ -2090,6 +2292,8 @@ function showLogin(msg, kind, m) {
 }
 function enterApp(u, offline) {
   user = u; customerCatalog = []; customerCatalogReady = false; customerCatalogError = ''; customerOrders = [];
+  wishlistProducts = []; customerWishlist = []; adminWishlist = []; customerWishlistOwnerId = '';
+  customerWishlistError = '';
   customerUnpaidUtangs = []; lastCustomerUtangCheckDate = ''; lastCustomerUtangReminderKey = '';
   setUserAdmin(false); managedUsers = []; KEY = KEYBASE + ':' + u.id;
   const adopt = !localStorage.getItem(KEY) && !!localStorage.getItem(KEYBASE);

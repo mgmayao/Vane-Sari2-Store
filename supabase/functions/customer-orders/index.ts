@@ -76,6 +76,92 @@ Deno.serve(async request => {
       return respond({products: data});
     }
 
+    if (body.action === 'wishlist_catalog') {
+      if (callerIsAdmin) throw new HttpError(403, 'Wishlists are available to customer accounts only.');
+      const ownerId = await getStoreOwnerId();
+      const {data, error} = await admin.from('products')
+        .select('id,name,category,stock')
+        .eq('user_id', ownerId)
+        .order('name');
+      if (error) throw new HttpError(502, 'Could not load products for your wishlist.');
+      return respond({products: data});
+    }
+
+    if (body.action === 'add_wishlist') {
+      if (callerIsAdmin) throw new HttpError(403, 'Wishlists are available to customer accounts only.');
+      const productId = typeof body.productId === 'string' ? body.productId.trim() : '';
+      const quantity = body.quantity;
+      if (!productId || productId.length > 100 || typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+        throw new HttpError(400, 'Choose a valid product and quantity between 1 and 100.');
+      }
+      const ownerId = await getStoreOwnerId();
+      const {data: product, error: productError} = await admin.from('products')
+        .select('id,name,category')
+        .eq('user_id', ownerId)
+        .eq('id', productId)
+        .maybeSingle();
+      if (productError) throw new HttpError(502, 'Could not validate this wishlist product.');
+      if (!product) throw new HttpError(404, 'That product is no longer in the store catalog.');
+      const metadata = authData.user.user_metadata || {};
+      const customerName = typeof metadata.display_name === 'string' && metadata.display_name.trim()
+        ? metadata.display_name.trim()
+        : [metadata.first_name, metadata.last_name].filter(value => typeof value === 'string' && value.trim()).join(' ') || authData.user.email;
+      const {data: item, error} = await admin.from('customer_wishlist').insert({
+        customer_id: authData.user.id,
+        customer_email: authData.user.email,
+        customer_name: customerName,
+        product_id: product.id,
+        product_name: product.name,
+        category: product.category || 'Others',
+        quantity,
+        status: 'pending'
+      }).select('id,product_id,product_name,category,quantity,status,created_at').single();
+      if (error?.code === '23505') throw new HttpError(409, 'This product is already in your pending wishlist.');
+      if (error) throw new HttpError(502, 'Could not add this product to your wishlist.');
+      return respond({success: true, item});
+    }
+
+    if (body.action === 'my_wishlist') {
+      if (callerIsAdmin) throw new HttpError(403, 'Customer wishlist history is not available to administrator accounts.');
+      const {data, error} = await admin.from('customer_wishlist')
+        .select('id,product_id,product_name,category,quantity,status,created_at,updated_at')
+        .eq('customer_id', authData.user.id)
+        .order('created_at', {ascending: false})
+        .limit(200);
+      if (error) throw new HttpError(502, 'Could not load your wishlist.');
+      return respond({items: data});
+    }
+
+    if (body.action === 'list_wishlist') {
+      if (!callerIsAdmin) throw new HttpError(403, 'Only administrators can review customer wishlists.');
+      const {data, error} = await admin.from('customer_wishlist')
+        .select('id,customer_email,customer_name,product_id,product_name,category,quantity,status,created_at')
+        .order('created_at', {ascending: false})
+        .limit(500);
+      if (error) throw new HttpError(502, 'Could not load customer wishlist requests.');
+      return respond({items: data});
+    }
+
+    if (body.action === 'review_wishlist') {
+      if (!callerIsAdmin) throw new HttpError(403, 'Only administrators can review customer wishlists.');
+      const itemId = typeof body.itemId === 'string' ? body.itemId : '';
+      const status = body.status;
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId)) {
+        throw new HttpError(400, 'Invalid wishlist request id.');
+      }
+      const reviewStatus = status === 'granted' ? 'granted' : status === 'declined' ? 'declined' : null;
+      if (!reviewStatus) throw new HttpError(400, 'Choose grant or decline.');
+      const {data, error} = await admin.from('customer_wishlist')
+        .update({status: reviewStatus, reviewed_by: authData.user.id, updated_at: new Date().toISOString()})
+        .eq('id', itemId)
+        .eq('status', 'pending')
+        .select('id')
+        .maybeSingle();
+      if (error) throw new HttpError(502, 'Could not update this wishlist request.');
+      if (!data) throw new HttpError(409, 'This wishlist request has already been reviewed.');
+      return respond({success: true});
+    }
+
     if (body.action === 'save_push_subscription') {
       if (callerIsAdmin) throw new HttpError(403, 'Bill reminders are available to customer accounts only.');
       const subscription = body.subscription;

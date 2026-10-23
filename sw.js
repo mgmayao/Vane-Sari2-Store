@@ -1,5 +1,5 @@
 // Network-first: always tries the latest version, falls back to cache when offline.
-const CACHE = 'vane-pos-v6';
+const CACHE = 'vane-pos-v7';
 const CDN = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'manifest.webmanifest', 'icon-192.png'])).then(() => self.skipWaiting()));
